@@ -1,0 +1,259 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+ms2023 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2023/20231107__ms__general__precinct.csv")
+
+ms2022 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2022/20221108__ms__general__precinct.csv")
+
+ms2020 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2020/20201103__ms__general__precinct.csv")
+
+ms2019 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2019/20191105__ms__general__precinct.csv")
+
+ms2018 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2018/20181106__ms__general__precinct.csv")
+
+ms2016 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2016/20161108__ms__general__precinct.csv")
+```
+### 2023
+
+```{r}
+party_by_county_2023 <- ms2023 %>%  filter(party %in% c('DEM', 'REP', 'IND')) %>% 
+  filter(office == 'Governor') %>% 
+  select(county, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM + IND) %>% 
+  mutate(leading_party_votes = case_when(
+    REP > DEM & REP > IND ~ REP,
+    DEM > REP & DEM > IND ~ DEM,
+    IND > REP & IND > DEM ~ IND,
+    REP == DEM ~ REP,
+    REP == IND ~ REP,
+    TRUE ~ is.numeric(NA)
+  )) %>% 
+  mutate(second_party_votes = case_when(
+    REP > DEM & DEM > IND ~ DEM,
+    DEM > REP & REP > IND ~ REP,
+    IND > DEM & REP > IND ~ IND,
+    REP == DEM ~ DEM,
+    REP == IND ~ IND,
+    TRUE ~ is.numeric(NA)
+  )) %>%
+  mutate(lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf) %>% filter(total > 0)
+```
+
+### 2022
+
+```{r}
+party_by_county_2022 <- ms2022 %>% mutate(party = case_when(
+  party == 'Republican' ~ 'REP',
+  party == 'Democratic' ~ 'DEM',
+  party == 'Democrat' ~ 'DEM',
+  party == 'R' ~ 'REP',
+  party == 'D' ~ 'DEM',
+  party == 'LBT' ~ 'LIB',
+  party == 'L' ~ 'LIB',
+  TRUE ~ party
+)) %>% filter(party %in% c('DEM', 'REP', 'LIB')) %>% 
+  filter(office == 'U.S. House') %>% 
+  select(county, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM + LIB) %>% 
+  mutate(leading_party_votes = case_when(
+    REP > DEM & REP > LIB ~ REP,
+    DEM > REP & DEM > LIB ~ DEM,
+    LIB > REP & LIB > DEM ~ LIB,
+    REP == DEM ~ REP,
+    REP == LIB ~ REP,
+    TRUE ~ is.numeric(NA)
+  )) %>% 
+  mutate(second_party_votes = case_when(
+    REP > DEM & DEM > LIB ~ DEM,
+    DEM > REP & REP > LIB ~ REP,
+    LIB > DEM & REP > LIB ~ LIB,
+    REP == DEM ~ DEM,
+    REP == LIB ~ LIB,
+    TRUE ~ is.numeric(NA)
+  )) %>%
+  mutate(lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf) %>% filter(total > 0)
+```
+
+
+
+
+
+### 2020
+
+```{r}
+party_by_county_2020 <- ms2020 %>% mutate(party = case_when(
+  party == 'Republican' ~ 'REP',
+  party == 'Democratic' ~ 'DEM',
+  party == 'Democrat' ~ 'DEM',
+  party == 'R' ~ 'REP',
+  party == 'D' ~ 'DEM',
+  party == 'LBT' ~ 'LIB',
+  party == 'L' ~ 'LIB',
+  TRUE ~ party
+)) %>% filter(party %in% c('DEM', 'REP')) %>% 
+  filter(office == 'U.S. House') %>% 
+  select(county, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM) %>% 
+  mutate(leading_party_votes = case_when(
+    REP > DEM ~ REP,
+    DEM > REP ~ DEM,
+    REP == DEM ~ REP,
+    TRUE ~ is.numeric(NA)
+  )) %>% 
+  mutate(second_party_votes = case_when(
+    REP > DEM ~ DEM,
+    DEM > REP ~ REP,
+    REP == DEM ~ DEM,
+    TRUE ~ is.numeric(NA)
+  )) %>%
+  mutate(lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf)
+```
+
+### 2019
+
+```{r}
+party_by_county_2019 <- ms2019 %>% mutate(party = case_when(
+  party == 'Republican' ~ 'REP',
+  party == 'Democratic' ~ 'DEM',
+  party == 'Democrat' ~ 'DEM',
+  party == 'R' ~ 'REP',
+  party == 'D' ~ 'DEM',
+  party == 'LBT' ~ 'LIB',
+  party == 'L' ~ 'LIB',
+  party == 'C' ~ 'CON',
+  party == 'Constitution' ~ 'CON',
+  party == 'Independent' ~ 'IND',
+  TRUE ~ party
+)) %>%  filter(office == 'Governor') %>% 
+  select(county, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM + IND) %>% 
+  mutate(leading_party_votes = case_when(
+    REP > DEM & REP > IND ~ REP,
+    DEM > REP & DEM > IND ~ DEM,
+    IND > REP & IND > DEM ~ IND,
+    REP == DEM ~ REP,
+    REP == IND ~ REP,
+    TRUE ~ is.numeric(NA)
+  )) %>% 
+  mutate(second_party_votes = case_when(
+    REP > DEM & DEM > IND ~ DEM,
+    DEM > REP & REP > IND ~ REP,
+    IND > DEM & REP > IND ~ IND,
+    REP == DEM ~ DEM,
+    REP == IND ~ IND,
+    TRUE ~ is.numeric(NA)
+  )) %>%
+  mutate(lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf) %>% filter(total > 0)
+```
+```
+
+### 2018
+
+```{r}
+party_by_county_2018 <- ms2018 %>% mutate(party = case_when(
+  party == 'Republican' ~ 'REP',
+  party == 'Democratic' ~ 'DEM',
+  party == 'Democrat' ~ 'DEM',
+  party == 'Reform' ~ 'REF',
+  party == 'Independent' ~ 'IND',
+  party == 'R' ~ 'REP',
+  party == 'D' ~ 'DEM',
+  party == 'LBT' ~ 'LIB',
+  party == 'L' ~ 'LIB',
+  TRUE ~ party
+)) %>% filter(party %in% c('DEM', 'REP', 'LIB', 'REF', 'IND')) %>% 
+  filter(office == 'U.S. House', precinct != 'TOTAL') %>% 
+  select(county, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM + REF + IND) %>% 
+  mutate(leading_party_votes = pmax(REP, DEM, REF, IND)) %>% 
+  mutate(second_party_votes = case_when(
+    REP > DEM & DEM > LIB & DEM > REF ~ DEM,
+    DEM > REP & REP > LIB & REP > REF ~ REP,
+    LIB > DEM & REP > LIB & LIB > REF ~ LIB,
+    REP > DEM & DEM > LIB & REF > DEM ~ DEM,
+    DEM > REP & REP > LIB & REF > REP ~ REP,
+    LIB > DEM & REP > LIB & REF > LIB ~ REF,
+    REP == DEM ~ DEM,
+    REP == LIB ~ LIB,
+    TRUE ~ is.numeric(NA)
+  )) %>%
+  mutate(lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf) %>% filter(total > 0)
+```
+
+```{r}
+counties_2018 <- party_by_precinct_2018 %>% 
+  group_by(county) %>% 
+  summarize(first_party = sum(leading_party_votes), second_party = sum(second_party_votes)) %>% 
+  mutate(lopsided_ratio = first_party / second_party) %>% 
+  arrange(desc(lopsided_ratio))
+```
+
+### 2016
+
+```{r}
+party_by_precinct_2016 <- ms2016 %>% mutate(party = case_when(
+  party == 'Republican' ~ 'REP',
+  party == 'Democratic' ~ 'DEM',
+  party == 'Libertarian' ~ 'LIB',
+  party == 'Democrat' ~ 'DEM',
+  party == 'Veterans' ~ 'VET',
+  party == 'Reform' ~ 'REF',
+  party == 'Independent' ~ 'IND',
+  party == 'R' ~ 'REP',
+  party == 'D' ~ 'DEM',
+  party == 'LBT' ~ 'LIB',
+  party == 'L' ~ 'LIB',
+  TRUE ~ party
+)) %>% filter(party %in% c('DEM', 'REP', 'LIB', 'VET', 'REF', 'IND')) %>% 
+  select(county, precinct, party, votes) %>% 
+  pivot_wider(names_from = party, values_from = votes, values_fn = sum, values_fill = 0) %>% 
+  mutate(total = REP + DEM + LIB + VET + REF + IND) %>% 
+  mutate(leading_party_votes = pmax(REP, DEM, VET, REF, IND),
+         second_party_votes = pmin(REP, DEM, VET, REF, IND),
+         lopsided_ratio = leading_party_votes / second_party_votes) %>%
+  arrange(desc(lopsided_ratio)) %>% 
+  filter(lopsided_ratio != Inf) %>% filter(total > 0)
+```
+
+```{r}
+counties_2016 <- party_by_precinct_2016 %>% 
+  group_by(county) %>% 
+  summarize(first_party = sum(leading_party_votes), second_party = sum(second_party_votes)) %>% 
+  mutate(lopsided_ratio = first_party / second_party) %>% 
+  arrange(desc(lopsided_ratio))
+```
+
+
+### MS GOV 2023/2019
+
+```{r}
+gov_2023 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2023/20231107__ms__general__county.csv") |> filter(office == 'Governor')
+gov_2019 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2019/20191105__ms__general__county.csv") |> filter(office == 'Governor')
+```
+```{r}
+dem2019 <- gov_2019 |> filter(party == 'Democrat') |> select(county, candidate, votes)
+dem2023 <- gov_2023 |> filter(party == 'Dem')|> select(county, candidate, votes)
+
+combined_dem_gov <- bind_rows(dem2019, dem2023) |> pivot_wider(names_from = candidate, values_from = votes) |> mutate(diff = `Brandon Presley` - `Jim Hood`) |> mutate(pct_diff = diff/`Jim Hood`*100)
+
+write_csv(combined_dem_gov, "combined_dem_gov.csv")
+
+```
+

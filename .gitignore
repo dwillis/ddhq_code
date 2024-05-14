@@ -1,0 +1,14 @@
+*.csv
+*.db
+*.dta
+*.zip
+*.Rdata
+*.bak
+szymanski*
+political_report/*
+*.xlsx
+*.html
+.Rhistory
+.Rproj.user/
+.ipynb_checkpoints/*
+.DS_Store

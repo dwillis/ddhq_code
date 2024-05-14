@@ -1,0 +1,44 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+f2_filings <- read_csv("f2_filings.csv", 
+     col_types = cols(date_filed = col_date(format = "%Y-%m-%d")))
+
+f2n_filings <- read_csv("f2n_filings.csv", 
+     col_types = cols(date_filed = col_date(format = "%Y-%m-%d")))
+
+```
+
+
+
+```{r}
+avg_per_week <- f2_filings %>% 
+  filter(year(date_filed) %% 2 == 1) %>% 
+  mutate(week = floor_date(date_filed, unit = "week")) %>% 
+  mutate(week_number = week(week)) %>% 
+  group_by(week_number) %>%
+  summarize(
+    average = sum(filings)/12
+  )
+
+write_csv(avg_per_week, "f2n_avg_per_week.csv")
+
+```
+
+
+```{r}
+per_week_2023 <- f2n_filings %>% 
+  filter(date_filed > '2022-12-31') %>% 
+  filter(year(date_filed) %% 2 == 1) %>% 
+  mutate(week = floor_date(date_filed, unit = "week")) %>% 
+  mutate(week_number = week(week)) %>% 
+  group_by(week_number) %>%
+  summarize(
+    total = sum(filings)
+  )
+
+write_csv(per_week_2023, "per_week_2023.csv")
+```
+

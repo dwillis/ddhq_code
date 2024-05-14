@@ -1,0 +1,25 @@
+---
+title: "pa_2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(sf)
+library(janitor)
+library(tidycensus)
+#census_api_key("549950d36c22ff16455fe196bbbd01d63cfbe6cf")
+
+```
+
+```{r}
+
+pa_2018 <- st_read("pa_2018/pa_2018.shp")
+
+ggplot() +
+  geom_sf(data=pa_2018, aes(fill=G18GOVDWOL)) +
+  theme_minimal()
+```

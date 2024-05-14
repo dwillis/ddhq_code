@@ -1,0 +1,456 @@
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+load("/Users/derekwillis/Downloads/member.Rdata")
+```
+
+```{r}
+
+library(lmerTest) 
+library(lme4)
+library(lmtest) 
+library(plm)
+library(survival) 
+library(stargazer)
+library(ggplot2)
+library(gridExtra)
+library(openxlsx)
+library(ggpubr)
+library(tidyr)
+library(plyr)
+library(dplyr)
+
+
+options(scipen=999)
+options(max.print=1000000)
+
+
+load("member.Rdata")
+load("speech.Rdata")
+load("cces_replication.Rdata")
+
+
+################################## Figure 1 ####################################
+### Distribution of the gscore
+st_level <- ggplot(speech, aes(x=gscore)) + 
+  geom_histogram(binwidth = 2, colour="black", fill="white") +
+  theme_bw() + labs(x="Grandstanding Score", y="Number of Statements")
+
+
+mem_level <- ggplot(member, aes(x=gscore)) + 
+  geom_histogram(binwidth = 2, colour="black", fill="white") +
+  theme_bw() + labs(x="Grandstanding Score", y="Number of Members")
+
+
+dist <- grid.arrange(st_level, mem_level, ncol=2) # save as pdf with 4 by 8 inches, landscape
+
+
+
+
+################################# Table 1 & S3 #################################
+m1 <- lm(votepct_inc~ gscore + as.factor(govtrack) + as.factor(congress), data=member) 
+a <- coeftest(m1, vcov=vcovHC(m1,type="HC0",cluster="govtrack")) 
+rse1 <- a[c(1:2),2]
+
+
+m2 <- lm(votepct_inc~ gscore + talk_rs + les_rs + partyloyalty + seniority_rs + seniority_sq_rs+ abs_dwnom1_rs 
+         + cmtleader + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid  
+         + as.factor(govtrack) + as.factor(congress), data=member) 
+a <- coeftest(m2, vcov=vcovHC(m2,type="HC0",cluster="govtrack")) 
+rse2 <- a[c(1:20),2]
+
+
+m2_lag <- lm(votepct ~ gscore + talk_rs + les_rs + partyloyalty + seniority_rs + seniority_sq_rs+ abs_dwnom1_rs 
+             + cmtleader + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid 
+             + as.factor(govtrack) + as.factor(congress), data=member) 
+a <- coeftest(m2_lag, vcov=vcovHC(m2_lag,type="HC0",cluster="govtrack")) 
+rse2_lag <- a[c(1:20),2]
+
+
+m3 <- lm(total_pac_contribs_k ~ gscore + as.factor(govtrack) + as.factor(congress), data=member) 
+a <- coeftest(m3, vcov=vcovHC(m3,type="HC0",cluster="govtrack")) 
+rse3 <- a[c(1:2),2]
+
+
+m4 <- lm(total_pac_contribs_k ~ gscore + talk_rs + les_rs + partyloyalty + seniority_rs + seniority_sq_rs + abs_dwnom1_rs 
+         + cmtleader + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid + log(num_prim_opps)
+         + as.factor(govtrack) + as.factor(congress), data=member) 
+a <- coeftest(m4, vcov=vcovHC(m4,type="HC0",cluster="govtrack"))
+rse4 <- a[c(1:21),2]
+
+
+ivnames = c("Grandstanding score", "Statement frequency", "Legislative effectiveness", "Party loyalty", "Seniority", "Seniority squared",
+            "Ideological intensity", "Committee leader", "Party leader", "Minority", "Unified", "Minority*Unified",
+            "Redistricted", "Secure district", "Challenger quality", "Spending ratio", "President party", "Midterm", "President party*Midterm", 
+            "Log of primary candidates")
+
+
+stargazer(m1, m2, m2_lag, m3, m4, title="The Effect of Grandstanding on Vote Share and PAC Contributions", se=list(rse1, rse2, rse2_lag, rse3, rse4),
+          align=TRUE, dep.var.labels.include = FALSE, 
+          covariate.labels=ivnames,
+          omit="as.factor", omit.stat=c("LL","aic","bic","ser","f"),
+          no.space=TRUE)
+
+
+
+
+################################## Figure 2 ####################################
+### A) Changes in the Grandstanding Score from (t-1) to t for Each Member
+time_change <- ggplot(member, aes(x=gscore_diff)) + 
+  geom_histogram(breaks=seq(-45,40,1), colour="black", fill="white") +
+  scale_x_continuous(breaks=seq(-45,40,5)) +
+  theme_bw() + xlab(bquote(Score[t]-Score[t-1])) + ylab("Number of Cases") 
+time_change  # save as pdf with 2.5 by 8 inches, landscape
+
+
+### b) A Random Sample of Ten Members in Four Different Ranges of Within-Member SD
+# Compute pooled variance of member-level sd across time
+psd <- member%>%group_by(govtrack)%>%dplyr::summarise(Variance=var(gscore))
+psd$n <- aggregate(gscore ~ govtrack, data = member, FUN = length)[,2]
+psd <- psd[which(psd$n>1),] # drop cases with only one observation since their variance is "NA"
+
+
+psd$qt <- ifelse(psd$Variance <= quantile(psd$Variance, prob=c(.25,.5,.75))[1], 1, 0)
+psd$qt <- ifelse(psd$Variance > quantile(psd$Variance, prob=c(.25,.5,.75))[1] & psd$Variance <= quantile(psd$Variance, prob=c(.25,.5,.75))[2], 2, psd$qt)
+psd$qt <- ifelse(psd$Variance > quantile(psd$Variance, prob=c(.25,.5,.75))[2] & psd$Variance <= quantile(psd$Variance, prob=c(.25,.5,.75))[3], 3, psd$qt)
+psd$qt <- ifelse(psd$Variance > quantile(psd$Variance, prob=c(.25,.5,.75))[3], 4, psd$qt)
+
+
+# Randomly select 10 members in each quartile among those who spoke more than 10 times in each congress
+psd_talk <- psd[!psd$govtrack %in% member$govtrack[member$talk <= 10],]  # 758 => 608
+
+set.seed(150)
+psd_talk_40 <- psd_talk %>% group_by(qt) %>% slice_sample(n=10)
+
+member <- merge(member, psd[,c("govtrack", "qt")], by="govtrack", all.x = TRUE)
+qt_sample <- member[member$govtrack %in% psd_talk_40$govtrack,] 
+qt_sample$qt <- factor(qt_sample$qt, levels = c("1", "2", "3", "4"), 
+                       labels = c("Q1", "Q2", "Q3", "Q4"))
+
+overtime_sample <- qt_sample %>%
+  ggplot(aes(congress, gscore)) +
+  ggtitle("(b) A Random Sample of Ten Members in Four Different Ranges of Within-Member SD") +
+  geom_point(aes(color=govtrack)) +
+  geom_line(aes(group = govtrack, color=govtrack)) +
+  scale_x_continuous(name="Congress", breaks=seq(105,114,3)) +
+  scale_y_continuous(name="Grandstanding Score") +
+  theme_bw() + 
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5)) +
+  facet_grid(~ qt)
+overtime_sample
+
+
+# Combine Figures 2A & 2B
+library(gridExtra)
+dist_overtime <- grid.arrange(time_change, overtime_sample, ncol=1) 
+
+#ggsave("overtime_graphs.pdf", plot = dist_overtime, device = NULL, path = NULL,
+#       scale = 1, width = 24, height = 20, units = c("cm"), dpi = 500)
+
+
+
+
+############################## Figure 3 & Table S4 #############################
+### Marginal effects of gscore by salience/redistricting
+ms3 <- lmer(votepct_inc~ gscore*salience_rs + talk_rs + votepct + votepct_sq + les_rs + partyloyalty + seniority_rs + seniority_sq_rs+ abs_dwnom1_rs 
+            + cmtleader_speech + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid
+            + as.factor(committee_code2) + as.factor(congress) + (1| govtrack) + (1| file_name), data=speech) 
+
+
+ms4 <- lmer(votepct_inc~ gscore*redist + talk_rs + salience_rs + votepct + votepct_sq + les_rs + partyloyalty + seniority_rs + seniority_sq_rs+ abs_dwnom1_rs 
+            + cmtleader_speech + leader + minority + unified + minuni + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid
+            + as.factor(committee_code2) + as.factor(congress) + (1| govtrack) + (1| file_name), data=speech) 
+
+
+### Table S4
+class(ms3) <- "lmerMod"
+class(ms4) <- "lmerMod"
+
+
+ivnames = c("Grandstanding score", "Salience", "Statement frequency", "Vote share", "Vote share squared", 
+            "Legislative effectiveness", "Party loyalty", "Seniority", "Seniority squared",
+            "Ideological intensity", "Committee leader s", "Party leader", "Minority", "Unified", "Minority x Unified",
+            "Redistricted", "Secure district", "Challenger quality", "Spending ratio", "President party", "Midterm", "President party x Midterm", 
+            "Grandstanding x Salience", "Grandstanding x Redistricted")
+
+
+stargazer(ms3, ms4, title="Moderating Effects of Salience and Redistricting (Speech-level)", 
+          align=TRUE, dep.var.labels.include = FALSE, 
+          covariate.labels=ivnames,
+          omit="as.factor", omit.stat=c("LL","aic","bic","ser","f"),
+          no.space=TRUE)
+
+
+### Figure 3
+### Compute the marginal effect of the gscore under high/low salience
+# 1) ms3
+sum <- summary(ms3)
+vcov <- sum$vcov
+v_b1 <- vcov[2,2]      
+v_b3 <- vcov[52,52]    
+cv_b1b3 <- vcov[2,52]  
+
+
+# compute the s.e. for the marginal effect of gscore when salience_rs==1
+se_b1b3 <- sqrt(v_b1 + v_b3 + 2*cv_b1b3) 
+
+
+# Now draw the marginal effects graph
+coef <-  sum$coefficients
+mg1 <- data.frame("type"= c("Low Salience", "High Salience"), "b" = c(coef[2], coef[2]+coef[52]), "se"= c(sqrt(vcov[2,2]), se_b1b3))
+mg1$model <- "ms3"
+mg1$dim <- "Salience"
+mg1$dv <- "Vote Share"
+
+
+# 2) ms4
+sum <- summary(ms4)
+vcov <- sum$vcov
+v_b1 <- vcov[2,2]      
+v_b3 <- vcov[52,52]    
+cv_b1b3 <- vcov[2,52] 
+
+
+# compute the s.e. for the marginal effect of gscore when redist==1
+se_b1b3 <- sqrt(v_b1 + v_b3 + 2*cv_b1b3)  
+
+
+# Now draw the marginal effects graph
+coef <-  sum$coefficients
+mg2 <- data.frame("type"= c("No Redistricting", "Redistricted"), "b" = c(coef[2], coef[2]+coef[52]), "se"= c(sqrt(vcov[2,2]), se_b1b3))
+mg2$model <- "ms4"
+mg2$dim <- "Redistricting"
+mg2$dv <- "Vote Share"
+
+
+mg <- rbind(mg1, mg2)
+mg$lower <- mg$b - 1.96*mg$se
+mg$upper <- mg$b + 1.96*mg$se
+
+
+Figure3 <- ggplot(mg[mg$dv=="Vote Share",], aes(type, b)) + geom_point() +
+  geom_errorbar(aes(ymin=b-1.96*se, ymax=b+1.96*se), lwd=1, width=0) +
+  geom_hline(yintercept = 0, lty=2, lwd=1, colour="grey50") + 
+  labs(x="Vote Share (DV)", y = "Marginal Effect") +
+  theme_bw() + theme(legend.title=element_blank(), strip.background =element_rect(colour = NA, fill = NA))
+Figure3
+
+
+ggsave("Figure3.pdf", plot = last_plot(), device = NULL, path = NULL,
+       scale = 1, width = 11.5, height = 14, units = c("cm"), dpi = 500)
+
+
+
+
+
+
+
+###################### Online Supporting Information ###########################
+################################# Figure S1 ####################################
+### WaPo distribution of articles covering congressional hearing and members' grandstanding statements
+wapo <- read.xlsx("WaPo_Manual_Data_final.xlsx")
+wapo <- wapo[1:(nrow(wapo)-1),]
+wapo <- wapo[wapo$hearing_news==1,]
+wapo <- wapo[!is.na(wapo$hearing_news),]
+cnt_wapo <- plyr::count(wapo$date)
+colnames(cnt_wapo) <- c("Date", "Hearing")
+
+
+wapo2 <- wapo[!is.na(wapo$grandstanding),]
+wapo2 <- wapo2[wapo2$grandstanding > 0,]
+cnt_wapo2 <- plyr::count(wapo2$date)
+colnames(cnt_wapo2) <- c("Date", "Grandstanding")
+
+
+cnt_wapo <- merge(cnt_wapo, cnt_wapo2, by="Date", all.x=TRUE)
+cnt_wapo$Grandstanding[is.na(cnt_wapo$Grandstanding)] <- 0
+
+
+cnt_wapo$Date2 <- as.Date(cnt_wapo$Date, format="%m/%d/%Y")
+cnt_wapo$Date2 <- format(cnt_wapo$Date2,"%Y-%b-%d")
+cnt_wapo$Date2 <- substr(cnt_wapo$Date2, 6, 11)
+cnt_wapo$Date2 <- gsub("-", " ", cnt_wapo$Date2)
+cnt_wapo$Date2 <- factor(cnt_wapo$Date2, levels = cnt_wapo$Date2[order(cnt_wapo$Date)])
+
+
+cmt_wapo3 <- tidyr::pivot_longer(cnt_wapo, cols=c('Hearing', 'Grandstanding'), names_to='Count', 
+                                 values_to="value")
+
+
+ggplot(cmt_wapo3, aes(x=Date2, y=value, fill=Count)) +
+  geom_bar(stat='identity', position='dodge') +
+  xlab("Date") + ylab("Frequency") +
+  theme_pubclean()
+
+
+
+
+################################# Figure S3 ####################################
+### VoteSmart document distribution by type
+load("vs.Rdata")
+vs_wo_hrg <- vs[vs$type!="Hearing" & vs$type!="Social Media",]
+vs_wo_hrg <- vs_wo_hrg[vs_wo_hrg$type!="NA",]
+
+
+cnt <- plyr::count(vs_wo_hrg$type)
+vs_wo_hrg$type <- factor(vs_wo_hrg$type, 
+                         levels = cnt$x[order(cnt$freq, decreasing = TRUE)])
+
+
+theme_set(theme_pubr())
+ggplot(vs_wo_hrg, aes(type)) +
+  geom_bar() +
+  xlab("Document Type") + ylab("Frequency") +
+  theme_pubclean()
+
+
+
+
+################################## Table S5 ####################################
+### The Effect of Grandstanding on Vote Share with the Unit-Specific Linear Trend
+m2_ltt <- lm(votepct_inc ~ gscore + talk_rs + les_rs + partyloyalty + seniority_rs + seniority_sq_rs + abs_dwnom1_rs 
+             + cmtleader + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid 
+             + as.factor(govtrack)*congress + as.factor(congress), data=member) 
+
+a <- coeftest(m2_ltt, vcov=vcovHC(m2_ltt,type="HC0",cluster="govtrack")) 
+rse5 <- a[c(1:20),2]
+
+
+m2_r <- lmer(votepct_inc~ as.factor(govtrack) + as.factor(congress) + gscore + congress + talk_rs + les_rs + partyloyalty + seniority_rs + seniority_sq_rs+ abs_dwnom1_rs 
+             + cmtleader + leader + minority + unified + minuni + redist + secure_dist + challenger_jcs + spending_ratio + pres_party + midterm + pres_mid # + total_receipts_k + uncontested
+             + (congress-1|govtrack), data=member) 
+class(m2_r) <- "lmerMod"
+
+
+ivnames = c("Grandstanding score", "Statement frequency", "Legislative effectiveness", "Party support", "Seniority", "Seniority squared",
+            "Ideological intensity", "Committee leader", "Party leader", "Minority", "Unified", "Minority*Unified",
+            "Redistricted", "Secure district", "Challenger quality", "Spending ratio", "President party", "Midterm", "President party*Midterm")
+
+
+stargazer(m2_ltt, m2_r, title="The Effect of Grandstanding on Vote Share with the Unit-Specific Linear Trend", se=list(rse5),
+          align=TRUE, dep.var.labels.include = FALSE, 
+          covariate.labels=ivnames,
+          omit="as.factor", omit.stat=c("LL","aic","bic","ser","f"),
+          no.space=TRUE)
+
+
+
+
+################################## Table S6 ####################################
+member_comp <- member[, c("gscore", "talk_rs", "les_rs", "partyloyalty", "seniority_rs", "seniority_sq_rs", "abs_dwnom1_rs", 
+                          "cmtleader", "leader", "minority", "unified", "minuni", "redist", "secure_dist", "challenger_jcs", 
+                          "spending_ratio", "pres_party", "midterm", "pres_mid", "govtrack", "congress")]
+member_comp <- member_comp[complete.cases(member_comp),]
+term_count <- member_comp %>% count(govtrack)
+table(term_count$n) # table entries
+nrow(term_count)    # total count
+
+
+
+
+################################## Table S7 ####################################
+# The Effects of Grandstanding on Voter Behavior (2009-2012)
+c1 <- clogit(turnout_cfmd ~ gscore*as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+             + les_rs + seniority_rs + seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_both 
+             + strata(id) + as.factor(congress), data=cces,  method="efron", weights=weight)
+
+
+c2 <- clogit(vote_inc ~ gscore*as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+             + les_rs + seniority_rs + seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_ratio
+             + strata(id) + as.factor(congress), data=cces,  method="efron", weights=weight)
+
+
+c3 <- clogit(inparty ~ gscore + newsint + age5 + educ + votereg + unemp + faminc
+             + les_rs + seniority_rs + seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_ratio 
+             + strata(id) + as.factor(congress), data=cces,  method="efron", weights=weight)
+
+
+ivnames_cces <- c("Grandstanding score", "In-partisan", "Out-partisan", "Age", "Education", 
+                  "Registered voter", "Political interest", "Unemployment", 
+                  "Family income", "Legislative effectiveness", "Seniority", "Seniority squared", "Party leader",
+                  "Minority", "Vote share(t-1)", "Challenger quality", "Spending both", "Spending ratio", "112th Congress", "113th Congress",  
+                  "Grandstanding x In-partisan", "Grandstanding x Out-partisan")
+
+stargazer(c1, c2, c3, title="The Effects of Grandstanding on Voter Behavior (2009-2012)",
+          se=list(coef(summary(c1))[, 4], coef(summary(c2))[, 4], coef(summary(c3))[, 4]),
+          digits=4, dep.var.caption="", dep.var.labels.include = FALSE, 
+          column.labels=c("Turnout", "Vote for Inc.", "Partisanship"),
+          covariate.labels = ivnames_cces,
+          keep.stat=c("n", "LL"),
+          no.space = TRUE)
+
+
+
+
+################################# Table S8 #####################################
+### Additional Analysis on the Effects of Grandstanding on Voter Behavior
+c6 <- clogit(turnout_cfmd ~ gscore + as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+             + les_rs + seniority_rs + seniority_sq_rs + leader + minority + challenger_jcs + spending_both
+             + strata(id) + as.factor(congress), data=cces,  method="efron", weights=weight)
+
+
+c7 <- clogit(vote_inc ~ gscore + as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+             + les_rs + seniority_rs +seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_ratio
+             + strata(id) + as.factor(congress), data=cces,  method="efron", weights=weight)
+
+
+ivnames_cces2 <- c("Grandstanding Score", "In-partisan", "Out-partisan", "Age", "Education",
+                     "Registered voter", "Political interest", "Unemployment", 
+                     "Family income", "Legislative effectiveness", "Seniority", "Seniority squared", 
+                     "Party leader", "Minority", "Vote share(t-1)", "Challenger quality", "Spending both", "Spending ratio",
+                     "112th Congress", "113th Congress", "Grandstanding x Political interest")
+
+
+stargazer(c6, c7, title="Additional Analysis on The Effects of Grandstanding on Voter Behavior",
+          se=list(coef(summary(c6))[, 4], coef(summary(c7))[, 4]),
+          digits=4, dep.var.caption="", dep.var.labels.include = FALSE, 
+          column.labels=c("Turnout","Vote for Inc."),
+          covariate.labels = ivnames_cces2,
+          keep.stat=c("n", "LL"),
+          no.space = TRUE)
+
+
+
+
+################################# Table S9 #####################################
+cces_single <- cces[cces$id_govtrack %in% cces$id_govtrack[cces$congress=="112"],]
+cces_single <- cces_single[!is.na(cces_single$id_govtrack),] # 308
+
+
+sing1 <- clogit(turnout_cfmd ~ gscore*as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+                + les_rs + seniority_rs + seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_both 
+                + strata(id_govtrack) + as.factor(congress), data=cces_single,  method="efron", weights=weight)
+
+
+sing2 <- clogit(vote_inc ~ gscore*as.factor(inparty3b) + age5 + educ + votereg + newsint + unemp + faminc 
+                + les_rs + seniority_rs + seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_ratio
+                + strata(id) + as.factor(congress), data=cces_single,  method="efron", weights=weight)
+
+
+sing3 <- clogit(inparty ~ gscore + newsint + age5 + educ + votereg + unemp + faminc  
+                 + les_rs + seniority_rs +seniority_sq_rs + leader + minority + votepct_inc + challenger_jcs + spending_ratio 
+                 + strata(id) + as.factor(congress), data=cces_single,  method="efron", weights=weight)
+
+
+ivnames_single <- c("Grandstanding Score", "In-partisan", "Out-partisan", "Age", "Education",
+                  "Registered voter", "Political interest", "Unemployment", 
+                  "Family income", "Legislative effectiveness", "Seniority", "Seniority squared", 
+                  "Party leader", "Minority", "Vote share", "Challenger quality", "Spending both", "Spending ratio", 
+                  "112th Congress", "113th Congress",
+                  "Grandstanding x In-partisan", "Grandstanding x Out-partisan")
+
+
+stargazer(sing1, sing2, sing3, title="The Effects of Grandstanding on Voter Behavior (Single-district States Only)",
+          se=list(coef(summary(sing1))[, 4], coef(summary(sing2))[, 4], coef(summary(sing3))[, 4]),
+          digits=4, dep.var.caption="", dep.var.labels.include = FALSE, 
+          column.labels=c("Turnout", "Vote for Inc.", "In-Partisanship"),
+          covariate.labels = ivnames_single,
+          keep.stat=c("n", "LL"),
+          no.space = TRUE)
+
+#Previewers originally developed by QDR and maintained at https://github.com/GlobalDataverseCommunityConsortium/dataverse-previewers. Feedback and contributions welcome.
+```
+

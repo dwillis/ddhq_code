@@ -1,0 +1,22 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+house_gop_joint <- read_csv("house_gop_joint.csv")
+```
+
+```{r}
+house_gop_joint_wide <- house_gop_joint |> pivot_wider(names_from = fecid, values_from = rank)
+
+all_three <- house_gop_joint_wide |> filter(!is.na(Emmer), !is.na(Scalise), !is.na(Johnson))
+
+```
+
+
+```{r}
+write_csv(house_gop_joint_wide, "house_gop_joint_wide.csv")
+
+write_csv(all_three, "all_three.csv")
+```
+

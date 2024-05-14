@@ -1,0 +1,20 @@
+```{r}
+library(tidyverse)
+library(scales)
+```
+
+
+```{r}
+senate_2021 <- read_csv("senate_2021.csv")
+
+senate_2021_totals <- senate_2021 %>% group_by(first, last, party, state) %>% summarize(total = sum(through_june19))
+
+```
+```{r}
+senate_2021_totals %>% 
+  ggplot() +
+  geom_bar(aes(x=reorder(last, total), weight=total))+
+  scale_y_continuous(labels=comma)+
+  coord_flip()
+```
+

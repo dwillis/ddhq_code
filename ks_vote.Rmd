@@ -1,0 +1,38 @@
+---
+title: "KS Vote"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+
+
+```{r}
+ks_abortion_vote <- read_csv("~/code/ddhq/ks_abortion_vote.csv")
+ks_2018 <- read_csv("~/code/openelections-data-ks/2018/20181106__ks__general__precinct.csv")
+ks_2018_gov <- ks_2018 %>% filter(office == 'Governor') %>% group_by(county, candidate) %>% summarize(total = sum(votes)) %>% arrange(county)
+ks_2018_gov <- ks_2018_gov %>% pivot_wider(names_from=candidate, values_from = total) %>% clean_names()
+ks_2018_gov <- ks_2018_gov %>% mutate(county = str_to_title(county))
+ks_2018_gov <- ks_2018_gov %>% mutate(county = if_else(county == 'Mcpherson', 'McPherson', county))
+```
+
+```{r}
+ks_join <- ks_abortion_vote %>% inner_join(ks_2018_gov)
+ks_join <- ks_join %>% mutate(pct_kelly = (no_votes/kelly_laura)*100, pct_kobach=(yes_votes/kobach_kris)*100)
+ks_join <- ks_join %>% mutate(kelly_no_change = ((no_votes-kelly_laura)/kelly_laura)*100)
+ks_join <- ks_join %>% mutate(kobach_yes_change = ((yes_votes-kobach_kris)/kobach_kris)*100)
+```
+
+```{r}
+ks_join %>% summarize(avg_no_change = mean(kelly_no_change), avg_yes_change = mean(kobach_yes_change))
+```
+
+```{r}
+ks_fips <- read_csv("ks_fips.csv")
+ks_join <- ks_join %>% inner_join(ks_fips, by="county")
+```
+
+

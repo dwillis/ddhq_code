@@ -1,0 +1,15 @@
+{
+    "databases": {
+        "emails": {
+            "tables": {
+                "emails": {
+                    "plugins": {
+                        "datasette-render-html": {
+                            "columns": ["body"]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

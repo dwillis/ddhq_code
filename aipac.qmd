@@ -1,0 +1,45 @@
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+aipac_contribs <- read_csv("aipac_october.csv")
+
+aipac_featured <- read_csv("aipac_featured.csv") |> mutate(recipient = str_to_upper(legalName))
+
+aipac_recipients <- read_csv("aipac_recipients_2023.csv")
+```
+
+```{r}
+total_by_date <- aipac_contribs |> 
+  filter(is.na(pac_name)) |> 
+  group_by(date) |> 
+  summarise(count = n(), total = sum(amount), min = min(amount), max=max(amount), mean = mean(amount)) |> 
+  arrange(desc(count))
+```
+
+```{r}
+total_by_recip <- aipac_contribs |> 
+  filter(is.na(pac_name)) |> 
+  group_by(memo_text) |> 
+  summarise(count = n(), total = sum(amount), min = min(amount), max=max(amount), mean = mean(amount)) |> 
+  arrange(desc(count))
+```
+
+
+```{r}
+all_aipac <- aipac_recipients |> left_join(aipac_featured)
+aipac_featured_recips <- aipac_recipients |> inner_join(aipac_featured)
+```
+
+```{r}
+torres <- read_csv("aipac_torres.csv")
+
+torres |> 
+  mutate(month = month(date)) |> 
+  group_by(month) |> 
+  summarise(total = sum(amount))
+
+```
+

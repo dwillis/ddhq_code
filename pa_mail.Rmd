@@ -1,0 +1,44 @@
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+```
+
+```{r}
+pa_mail <- read_delim("VR_SWMailBallot_External 20230512.TXT", delim = '|') %>% clean_names() %>% 
+  mutate(app_issue_date = mdy(app_issue_date), app_return_date = mdy(app_return_date))
+```
+
+```{r}
+dem_county <- pa_mail %>% 
+  filter(!is.na(ballot_status)) %>% 
+  filter(party == 'D') %>% 
+  group_by(county_name, party, ballot_status) %>% 
+  dplyr::summarise(count = n()) %>%
+  pivot_wider(names_from = ballot_status, values_from = count) %>% 
+  clean_names() %>% 
+  replace(is.na(.), 0) %>% 
+  mutate(dem_total = cancelled + pending+vote_recorded) %>% 
+  dplyr::rename(dem_pending=pending, dem_cancelled=cancelled, dem_recorded = vote_recorded)
+
+rep_county <- pa_mail %>% 
+  filter(!is.na(ballot_status)) %>% 
+  filter(party == 'R') %>% 
+  group_by(county_name, party, ballot_status) %>% 
+  dplyr::summarise(count = n()) %>%
+  pivot_wider(names_from = ballot_status, values_from = count) %>% 
+  clean_names() %>% 
+  replace(is.na(.), 0) %>% 
+  mutate(rep_total = cancelled + pending+vote_recorded) %>% 
+  dplyr::rename(rep_pending=pending, rep_cancelled=cancelled, rep_recorded = vote_recorded)
+
+
+county_totals_with_party <- county_totals %>% inner_join(dem_county, by='county_name') %>% select(-party)
+county_totals_with_party <- county_totals_with_party %>% inner_join(rep_county, by='county_name') %>% select(-party)
+
+
+county_totals_with_party <- county_totals_with_party %>% 
+  mutate(dem_pct = dem_total/total*100, rep_pct = rep_total/total*100)
+
+```
+

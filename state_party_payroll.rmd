@@ -1,0 +1,85 @@
+---
+title: "State Party Payroll"
+author: "Derek Willis"
+date: "2022-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+state_parties <- read_csv("state_parties.csv")
+dem_payroll <- read_csv("dem_state_party_payroll.csv")
+rep_payroll <- read_csv("rep_state_party_payroll.csv")
+combined_payroll <- bind_rows(list(dem_payroll, rep_payroll))
+```
+
+Removing expenses that aren't actually payroll
+
+```{r}
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'fee'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Fee'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'FEE'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Tax'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Tex'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'TAX'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'tax'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'arnish'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'ervice'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'SERVICE'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Software'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'SOFTWARE'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'rocess'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'PROCESSING'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'INSURANCE'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'PENALTY'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Dues'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Intuit'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'ministration'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'Certification'))
+
+combined_payroll <- combined_payroll %>% filter(!str_detect(purpose, 'DEPOSIT'))
+```
+
+```{r}
+# join with state party details - no payroll spending for HI GOP!
+
+state_party_payroll_spending <- combined_payroll %>% group_by(fecid) %>% summarise(payroll = sum(total)) %>% left_join(state_parties)
+```
+
+```{r}
+state_party_payroll_spending_by_party <- state_party_payroll_spending %>% group_by(state, party) %>% summarise(total = sum(payroll)) %>% pivot_wider(names_from = party, values_from=total) %>% mutate(total = DEM + REP, r_minus_d = REP-DEM)
+```
+
+RNC Payroll: 33,370,275.50 - ranks second among purpose totals to transfers
+DNC Payroll: 26,613,384.05 - ranks second among purpose totals to direct mail
+
+```{r}
+state_party_payroll_spending_by_party %>% ungroup() %>% summarise(dem_total = sum(DEM), rep_total = sum(REP))
+```
+

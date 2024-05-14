@@ -1,0 +1,60 @@
+---
+title: "FEC Q1 2022"
+author: "Derek Willis"
+date: "4/16/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+house_candidates <- read_csv("~/code/ddhq/house_candidates.csv")
+senate_candidates <- read_csv("~/code/ddhq/senate_cands.csv")
+filings_q1 <- read_csv("~/code/ddhq/q1_2022_filings.csv", 
+    col_types = cols(date_filed = col_date(format = "%m/%d/%y"), 
+        start_date = col_date(format = "%m/%d/%y"), 
+        end_date = col_date(format = "%m/%d/%y")))
+```
+
+
+```{r}
+
+house_candidates <- house_candidates %>% filter(current != 'FALSE')
+
+house_candidates_with_filings <- house_candidates %>% 
+  inner_join(filings_q1, by="fec_committee_id")
+
+senate_candidates_with_filings <- senate_candidates %>% 
+  inner_join(filings_q1, by="fec_committee_id")
+```
+
+
+```{r}
+write_csv(senate_candidates_with_filings %>% 
+   filter(loans_total >= 100000) %>% 
+   arrange(desc(loans_total)) %>% 
+   select(clean_name, office_state, party, loans_total), "senate_loans.csv")
+```
+
+```{r}
+house_by_party <- house_candidates_with_filings %>% group_by(office_state, district, party) %>% summarize(raised = sum(receipts_total), contribs = sum(contribution_total), spent = sum(disbursements_total), cash = sum(cash_on_hand), loans = sum(loans_total), debts = sum(debts_total)) %>% select(office_state, raised, district, party) %>%  pivot_wider(names_from = party, values_from = raised)
+```
+
+```{r}
+house_by_party %>% filter(is.na(DEM))
+```
+
+```{r}
+f3s <- read_csv("~/code/ddhq/f3s.csv", col_types = cols(start_date = col_date(format = "%Y-%m-%d"), 
+    end_date = col_date(format = "%Y-%m-%d")))
+
+f3s_with_cands_2022 <- f3s %>% filter(cycle == 2022) %>% left_join(house_candidates, by='fec_committee_id') %>% drop_na(fecid)
+
+f3s_with_cands_2022 %>% filter(current == TRUE, office_state == 'NC') %>% group_by(cycle, fec_committee_id, committee_name) %>% summarize(avg_burn = mean(burn_rate)) %>% arrange(desc(avg_burn))
+
+
+```
+

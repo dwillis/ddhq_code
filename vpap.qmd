@@ -1,0 +1,45 @@
+```{r}
+library(tidyverse)
+library(rvest)
+```
+
+```{r}
+
+dates <- c('2023-11-04', '2023-11-03', '2023-11-02', '2023-11-01', '2023-10-31', '2023-10-30', '2023-10-27', '2023-10-26', '2023-10-25', '2023-10-24', '2023-10-23', '2023-10-20', '2023-10-19', '2023-10-18', '2023-10-17', '2023-10-16', '2023-10-13', '2023-10-12', '2023-10-11', '2023-10-10')
+
+contribs <- tibble()
+
+for (date in dates){
+
+  url <- paste("https://www.vpap.org/money/large-pre/non_candidate/?date_posted=", date, sep="")
+
+  results <- url |> 
+    read_html() |> 
+    html_table()
+
+  table <- results[[1]]
+  table <- table |> mutate(date=date)
+
+  contribs <- bind_rows(contribs, table)
+  
+}
+
+
+contribs <- contribs |> mutate(Amount = parse_number(Amount))
+
+```
+
+```{r}
+top_10 <- contribs |> 
+  group_by(Recipient) |> 
+  summarize(Total = sum(Amount)) |> 
+  arrange(desc(Total)) |> 
+  head(10)
+```
+
+
+
+```{r}
+write_csv(top_10, "vpap_10.csv")
+```
+

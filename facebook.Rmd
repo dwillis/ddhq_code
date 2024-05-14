@@ -1,0 +1,50 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+expenses_22 <- read_csv("expenses_orgs.csv")
+fec_cmtes22 <- read_csv("fec_cmtes.csv")
+
+expenses_20 <- read_csv("expenses_orgs_2020.csv")
+fec_cmtes20 <- read_csv("fec_cmtes_2020.csv")
+```
+
+
+```{r}
+fbmeta <- expenses_22 %>% 
+  filter(str_detect(recipient, "^Facebook") | str_detect(recipient, "^Meta")) %>% 
+  filter(state != 'MT') %>% filter(state != 'WI')
+```
+
+```{r}
+fbmeta22_totals <- fbmeta %>% 
+  group_by(fec_committee_id) %>% 
+  summarise(min_date = min(first_date), max_date = max(last_date), sum = sum(total))
+```
+
+```{r}
+fb_meta22_with_cmtes <- fbmeta22_totals %>% 
+  inner_join(fec_cmtes22, by=c('fec_committee_id' = 'fecid'))
+```
+
+```{r}
+fbmeta20 <- expenses_20 %>% 
+  filter(str_detect(recipient, "^Facebook"))
+
+fbmeta20_totals <- fbmeta20 %>% 
+  group_by(fec_committee_id) %>% 
+  summarise(min_date = min(first_date), max_date = max(last_date), sum = sum(total))
+
+fb_meta20_with_cmtes <- fbmeta20_totals %>% 
+  inner_join(fec_cmtes20, by=c('fec_committee_id' = 'fecid'))
+```
+
+```{r}
+combined_fb <- fb_meta22_with_cmtes %>% 
+  left_join(fb_meta20_with_cmtes, by="fec_committee_id") %>% 
+  select(fec_committee_id, name.x, min_date.x, max_date.x, sum.x, min_date.y, max_date.y, sum.y) %>% 
+  rename(name = name.x, min_date_2022 = min_date.x, max_date_2022 = max_date.x, sum_2022 = sum.x, min_date_2020 = min_date.y, max_date_2020 = max_date.y, sum_2020 = sum.y) %>% 
+  mutate(diff = sum_2022 - sum_2020)
+```
+

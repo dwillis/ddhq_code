@@ -1,0 +1,54 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+precinct_results <- read_csv("~/code/openelections-data-ny/2022/20221108__ny__general__precinct.csv")
+```
+
+```{r}
+hochul_votes <- precinct_results %>% filter(str_detect(candidate, "Hochul")) %>% group_by(county, precinct) %>% dplyr::summarize(hochul = sum(votes))
+schumer_votes <- precinct_results %>% filter(str_detect(candidate, "Schumer")) %>%  group_by(county, precinct) %>% dplyr::summarize(schumer = sum(votes))
+dinapoli_votes <- precinct_results %>% filter(str_detect(candidate, "Napoli")) %>% group_by(county, precinct) %>% dplyr::summarize(dinapoli = sum(votes))
+james_votes <- precinct_results %>% filter(str_detect(candidate, "Letitia")) %>% group_by(county, precinct) %>% dplyr::summarize(james = sum(votes))
+
+schumer_hochul <- schumer_votes %>% inner_join(hochul_votes)
+schumer_dinapoli <- schumer_votes %>% inner_join(dinapoli_votes)
+dinapoli_james <- dinapoli_votes %>% inner_join(james_votes)
+dinapoli_hochul <- dinapoli_votes %>% inner_join(hochul_votes)
+```
+```{r}
+schumer_hochul <- schumer_hochul %>% mutate(diff = schumer - hochul)
+dinapoli_hochul <- dinapoli_hochul %>% mutate(diff = dinapoli - hochul)
+```
+
+```{r}
+schumer_hochul %>% filter(diff > 0) %>% group_by(county) %>% dplyr::summarise(count = n()) %>% arrange(desc(count))
+dinapoli_hochul %>% filter(diff > 0) %>% group_by(county) %>% dplyr::summarise(count = n()) %>% arrange(desc(count))
+```
+
+
+
+
+```{r}
+schumer_hochul %>% 
+  ggplot() +
+  geom_point(aes(x=hochul, y=schumer)) +
+  geom_smooth(aes(x=hochul, y=schumer), method = 'lm')
+
+schumer_dinapoli %>% 
+  ggplot() +
+  geom_point(aes(x=schumer, y=dinapoli)) +
+  geom_smooth(aes(x=schumer, y=dinapoli), method = 'lm')
+
+dinapoli_james %>% 
+  ggplot() +
+  geom_point(aes(x=james, y=dinapoli)) +
+  geom_smooth(aes(x=james, y=dinapoli), method = 'lm')
+
+dinapoli_hochul %>% 
+  ggplot() +
+  geom_point(aes(x=hochul, y=dinapoli)) +
+  geom_smooth(aes(x=hochul, y=dinapoli), method = 'lm')
+```
+

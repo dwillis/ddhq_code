@@ -1,0 +1,208 @@
+---
+title: "September IEs"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+post_labor_day_ies <- read_csv("post_labor_day_ies_house.csv", 
+    col_types = cols(candidate_id = col_skip(), 
+        committee_id = col_skip(), org_name = col_skip(), 
+        date = col_date(format = "%Y-%m-%d"),
+        date_received = col_date(format = "%Y-%m-%d"), 
+        dissemination_date = col_date(format = "%Y-%m-%d"),
+        transaction_type = col_skip(),
+        transaction_description = col_skip(),
+        benef_cmte_id = col_skip(),
+        benef_cand_id = col_skip(),
+        benef_candidate = col_skip(),
+        benef_office = col_skip(),
+        benef_state = col_skip(),
+        benef_district = col_skip(),
+        conduit_name = col_skip(),
+        conduit_address_one = col_skip(),
+        conduit_address_two = col_skip(),
+        conduit_city = col_skip(),
+        conduit_state = col_skip(),
+        conduit_zip = col_skip(),
+        increased_limit = col_skip(),
+        lat = col_skip(),
+        lng = col_skip(),
+        category_code = col_skip(),
+        created_at = col_skip(),
+        updated_at = col_skip(),
+        trump_property = col_skip(),
+        federal_amount = col_skip(),
+        nonfederal_amount = col_skip(),
+        administrative_voter_drive_activity = col_skip(),
+        fundraising_activity = col_skip(),
+        exempt_activity = col_skip(),
+        generic_voter_drive_activity = col_skip(),
+        direct_candidate_support_activity = col_skip(),
+        public_communications_party_activity = col_skip()
+    ))
+
+```
+
+```{r}
+post_labor_day_ies <- post_labor_day_ies %>% mutate(party = case_when(
+  candidate_name == 'Elaine Luria' ~ 'DEM', 
+  candidate_name == 'Matthew Cartwright' ~ 'DEM',
+  candidate_name == 'Matt Mowers' ~ 'REP',
+  candidate_name == 'Paul Junge' ~ 'REP',
+  candidate_name == 'Hillary Scholten' ~ 'DEM',
+  TRUE ~ party
+))
+
+post_labor_day_ies <- post_labor_day_ies %>% filter(dissemination_date >= '2022-09-01')
+```
+
+
+
+```{r}
+scam_pacs <- c('C00773788', 'C00773390', 'C00774323', 'C00671685', 'C00771865', 'C00795831', 'C00759365', 'C00759332', 'C00773788', 'C00758938', 'C00712885', 'C00699801', 'C00685982', 'C00774323', 'C00622472', 'C00758953', 'C00787671', 'C00653386')
+post_labor_day_ies_minus_scams <- post_labor_day_ies %>% filter(!fecid %in% scam_pacs)
+```
+
+```{r}
+district_totals <- post_labor_day_ies_minus_scams %>% filter(election_type == 'G') %>% group_by(office_state, district) %>% summarize(total = sum(amount), cmtes = n_distinct(fecid)) %>% arrange(desc(total))
+```
+
+```{r}
+post_labor_day_ies_minus_scams %>% filter(election_type == 'G') %>% summarize(total = sum(amount))
+post_labor_day_ies_minus_scams %>% filter(election_type == 'G') %>% group_by(party, support) %>%  summarize(total = sum(amount)) %>% pivot_wider(names_from = support, values_from = total)
+post_labor_day_ies_minus_scams %>% filter(election_type == 'G') %>% group_by(committee_name) %>%  summarize(total = sum(amount)) %>% arrange(desc(total))
+post_labor_day_ies_minus_scams %>% filter(election_type == 'G') %>% group_by(fec_candidate_id, support) %>%  summarize(total = sum(amount)) %>%  pivot_wider(names_from = support, values_from = total) %>% mutate(total = O + S) %>% arrange(desc(total))
+post_labor_day_ies_minus_scams %>% filter(office_state == 'PA', district == 8)
+```
+```{r}
+post_labor_day_ies <- read_csv("post_labor_day_ies_senate.csv", 
+    col_types = cols(candidate_id = col_skip(), 
+        committee_id = col_skip(), org_name = col_skip(), 
+        date = col_date(format = "%Y-%m-%d"),
+        date_received = col_date(format = "%Y-%m-%d"), 
+        dissemination_date = col_date(format = "%Y-%m-%d"),
+        transaction_type = col_skip(),
+        transaction_description = col_skip(),
+        benef_cmte_id = col_skip(),
+        benef_cand_id = col_skip(),
+        benef_candidate = col_skip(),
+        benef_office = col_skip(),
+        benef_state = col_skip(),
+        benef_district = col_skip(),
+        conduit_name = col_skip(),
+        conduit_address_one = col_skip(),
+        conduit_address_two = col_skip(),
+        conduit_city = col_skip(),
+        conduit_state = col_skip(),
+        conduit_zip = col_skip(),
+        increased_limit = col_skip(),
+        lat = col_skip(),
+        lng = col_skip(),
+        category_code = col_skip(),
+        created_at = col_skip(),
+        updated_at = col_skip(),
+        trump_property = col_skip(),
+        federal_amount = col_skip(),
+        nonfederal_amount = col_skip(),
+        administrative_voter_drive_activity = col_skip(),
+        fundraising_activity = col_skip(),
+        exempt_activity = col_skip(),
+        generic_voter_drive_activity = col_skip(),
+        direct_candidate_support_activity = col_skip(),
+        public_communications_party_activity = col_skip()
+    ))
+```
+
+```{r}
+scam_pacs <- c('C00773788', 'C00773390', 'C00774323', 'C00671685', 'C00771865', 'C00795831', 'C00759365', 'C00759332', 'C00773788', 'C00758938', 'C00712885', 'C00699801', 'C00685982', 'C00774323', 'C00622472', 'C00758953', 'C00787671', 'C00653386')
+post_labor_day_ies_minus_scams <- post_labor_day_ies %>% filter(!fecid %in% scam_pacs)
+
+```
+```{r}
+state_totals <- post_labor_day_ies_minus_scams %>% group_by(office_state) %>% summarise(total = sum(amount), cmtes = n_distinct(fecid)) %>% arrange(desc(total))
+```
+
+```{r}
+post_labor_day_ies_minus_scams <- post_labor_day_ies_minus_scams %>% mutate(committee_name = str_to_title(committee_name))
+```
+
+```{r}
+state_pac_totals <- post_labor_day_ies_minus_scams %>% group_by(committee_name, office_state) %>% summarise(total = sum(amount)) %>% pivot_wider(names_from=office_state, values_from = total)
+write_csv(state_pac_totals, 'state_pac_totals.csv')
+```
+
+```{r}
+purpose_totals <- post_labor_day_ies_minus_scams %>% group_by(purpose, office_state) %>% summarise(total = sum(amount)) %>% pivot_wider(names_from=office_state, values_from = total)
+write_csv(purpose_totals, 'purpose_totals_totals.csv')
+```
+
+```{r}
+post_labor_day_ies_minus_scams %>% filter(purpose ==  'DIGITAL PLACEMENT')
+```
+
+```{r}
+ies <- read_csv("ie_spending_1008.csv") %>% mutate(week = epiweek(dissemination_date))
+ies_minus_scams <- ies %>% filter(!fecid %in% scam_pacs)
+
+```
+
+
+```{r}
+ies_minus_scams %>% 
+  group_by(week) %>% 
+  summarise(total = sum(amount), start = min(dissemination_date), end = max(dissemination_date)) %>% 
+  arrange(desc(week))
+```
+```{r}
+change_36_to_40 <- ies_minus_scams %>% 
+  filter(week == 36 | week == 40) %>% 
+  group_by(office_state, district, week) %>% 
+  summarise(total = sum(amount)) %>% 
+  pivot_wider(names_from = week, values_from = total) %>% 
+  mutate(pct_diff = (`40`-`36`)/`36` *100) %>% 
+  arrange(desc(pct_diff)) %>% 
+  filter(`40` > 99999)
+
+write_csv(change_36_to_40, "change_36_to_40.csv")
+
+```
+```{r}
+ies_minus_scams %>% 
+  filter(district == 1, office_state == 'IN') %>% 
+  group_by(office_state, district, week) %>% 
+  summarise(total = sum(amount))
+```
+
+
+```{r}
+house_totals <- ies_minus_scams %>% 
+  filter(office_name == 'House') %>% 
+  group_by(office_state, district, week) %>% 
+  summarise(total = sum(amount)) %>% 
+  filter(total > 999999) %>% 
+  group_by(office_state, district) %>% 
+  summarise(count = n(), total_amount = sum(total)) %>% 
+  arrange(desc(count), desc(total_amount)) %>% 
+  filter(count >= 4)
+
+write_csv(house_totals, "house_totals.csv")
+```
+
+```{r}
+ies_minus_scams %>% 
+  filter(office_name == 'House') %>% 
+  group_by(fec_candidate_id, party, office_state, district, support) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))
+```
+
+```{r}
+ies_minus_scams %>% 
+  filter(week == 40, office_state == 'NV', district == 1) %>% 
+  summarise(groups = n_distinct(fecid))
+```
+

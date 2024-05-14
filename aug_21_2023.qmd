@@ -1,0 +1,33 @@
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r}
+pres_ies <- read_csv("~/code/ddhq/pres_ies_2024.csv")
+```
+```{r}
+write_csv(pres_ies %>% 
+  mutate(week = week(dissemination_date), month = month(dissemination_date)) %>% 
+  group_by(month) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(month), "ies_month.csv")
+  
+```
+
+```{r}
+pth <- read_csv("~/code/ddhq/protect_the_house.csv")
+
+pth <- pth %>% mutate(cand_district = sprintf("%02d", candidate_office_district))
+
+pth <- pth %>% mutate(cd = paste0(recipient_state,'-',cand_district))
+
+totals <- pth %>% 
+  group_by(cd) %>% 
+  summarise(total = sum(disbursement_amount)) 
+
+write_csv(totals, "pth_totals.csv")
+
+```
+

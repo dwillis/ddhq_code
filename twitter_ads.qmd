@@ -1,0 +1,73 @@
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+options(scipen=999)
+```
+
+
+```{r}
+ads <- read_csv("15_december_political_ads_data1.csv") |> clean_names()
+
+ads <- ads |> 
+  mutate(day_of_start_date_adgroup = dmy(day_of_start_date_adgroup), day_of_end_date_adgroup = dmy(day_of_end_date_adgroup)) |> 
+  replace_na(list(spend_usd =0))
+```
+
+## Total Spending with Min & Max Dates
+
+```{r}
+total_spending <- ads |> 
+  group_by(screen_name) |> 
+  summarize(total_spend = sum(spend_usd), min=min(day_of_start_date_adgroup), max = max(day_of_end_date_adgroup)) |> 
+  arrange(desc(total_spend))
+```
+
+## Total Spending by Targeting Type
+
+```{r}
+ads |> 
+  group_by(targeting_name) |> 
+  summarize(total_spend = sum(spend_usd), min=min(day_of_start_date_adgroup), max = max(day_of_end_date_adgroup)) |> 
+  arrange(desc(total_spend))
+```
+
+## Total Spending by Targeting Interest
+
+```{r}
+ads |> 
+  group_by(interest_targeting) |> 
+  summarize(total_spend = sum(spend_usd), min=min(day_of_start_date_adgroup), max = max(day_of_end_date_adgroup)) |> 
+  arrange(desc(total_spend))
+```
+
+
+## Total Spending by Account Targeting College Students
+
+```{r}
+ads |> 
+  filter(str_detect(interest_targeting, "Conservative")) |> 
+  group_by(screen_name) |> 
+  summarize(total_spend = sum(spend_usd), min=min(day_of_start_date_adgroup), max = max(day_of_end_date_adgroup)) |> 
+  arrange(desc(total_spend))
+```
+
+```{r}
+ads |> 
+  filter(screen_name == 'RonDeSantis') |> 
+  arrange(desc(impressions))
+```
+
+
+## Total Spending by GeoTarget
+
+```{r}
+ads |> 
+  group_by(geo_targeting) |> 
+  summarize(total_spend = sum(spend_usd), min=min(day_of_start_date_adgroup), max = max(day_of_end_date_adgroup)) |> 
+  arrange(desc(total_spend))
+
+```
+
+
+

@@ -1,0 +1,59 @@
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+contribs <- read_csv("last_minute_contribs.csv") %>% 
+  mutate(contributor_organization_name = str_to_title(contributor_organization_name), contributor_first_name = str_to_title(contributor_first_name), contributor_last_name = str_to_title(contributor_last_name), contributor_employer = str_to_title(contributor_employer), contributor_occupation = str_to_title(contributor_occupation)) %>% filter(!is.na(fec_candidate_id))
+
+candidates <- read_csv("fec_cands.csv")
+
+contribs_with_cands <- contribs %>% inner_join(candidates, by=c("fec_candidate_id" = "fecid", "fec_committee_id"))
+
+cmtes <- read_csv("fec_cmtes.csv")
+
+cand_cmtes <- cmtes %>% filter(committee_type %in% c('H','S'))
+```
+
+```{r}
+top_recips_house <- contribs_with_cands %>% 
+  filter(branch == 'H') %>% 
+  mutate(display_district = paste0(office_state.x, "-", district)) %>% 
+  group_by(fec_committee_id, clean_name, display_district, party) %>% 
+  summarise(total = sum(contribution_amount)) %>% 
+  arrange(desc(total))
+```
+
+```{r}
+top_orgs <- contribs_with_cands %>% 
+  filter(!is.na(contributor_organization_name)) %>% 
+  group_by(contributor_fec_id, contributor_organization_name) %>% 
+  summarise(total = sum(contribution_amount)) %>% 
+  arrange(desc(total))
+
+top_donors <- contribs_with_cands %>% 
+  filter(!is.na(contributor_fec_id)) %>% 
+  group_by(contributor_fec_id, contributor_organization_name) %>% 
+  summarise(total = sum(contribution_amount)) %>% 
+  arrange(desc(total))
+
+top_donors %>% inner_join(cmtes, by=c('contributor_fec_id' = 'fecid'))
+
+```
+```{r}
+top_races <- contribs_with_cands %>% 
+  filter(!is.na(contributor_fec_id)) %>% 
+  group_by(office_state.x, district, contribution_date) %>% 
+  summarise(total = sum(contribution_amount)) %>% 
+  arrange(desc(total))
+```
+
+```{r}
+contribs_with_cands %>% filter(str_detect(contributor_organization_name, 'Vern')) %>% select(contributor_organization_name, name, office_state.x, district, contribution_date, contribution_amount, fec_candidate_id)
+```
+```{r}
+contribs_with_cands %>% 
+  filter(contributor_organization_name == 'Huck Pac')
+```
+

@@ -1,0 +1,113 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+actblue_pg22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1671120.csv.zip", guess_max = 50000)
+actblue_pre22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1654436.csv.zip", guess_max = 50000)
+actblue_oct22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1645815.csv.zip", guess_max = 50000)
+actblue_sep22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1631900.csv.zip", guess_max = 50000)
+actblue_aug22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1626598.csv.zip", guess_max = 50000)
+actblue_jul22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1618546.csv.zip", guess_max = 50000)
+actblue_jun22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1604622.csv.zip", guess_max = 50000)
+
+actblue_may22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1597432.csv.zip", guess_max = 50000)
+actblue_ye21 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1594564.csv.zip", guess_max = 50000)
+actblue_apr22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1589733.csv.zip", guess_max = 50000)
+actblue_jun22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1604622.csv.zip", guess_max = 50000)
+actblue_jun22 <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1604622.csv.zip", guess_max = 50000)
+
+```
+
+```{r}
+actblue_all <- bind_rows(actblue_my, actblue_all, actblue_pre, actblue_q1, actblue_q2, actblue_q3, actblue_ye)
+```
+
+```{r}
+actblue_all <- actblue_all %>% 
+  mutate(recipient = memo_text) %>% 
+  mutate(recipient = gsub("Earmarked for ","", recipient)) %>% 
+  separate(recipient, c('name','fecid'), sep='\\(') %>% 
+  mutate(fecid = gsub('\\)','', fecid))
+```
+
+```{r}
+trump_actblue <- actblue_all %>% 
+  filter(fecid %in% c('C00770941', 'C00618371', 'C00580100'))
+
+herschel_actblue <- actblue_all %>% 
+  filter(fecid == 'C00787853')
+
+rnc_actblue_all <- actblue_all %>% 
+  filter(fecid == 'C00003418')
+
+nrsc_actblue_all <- actblue_all %>% 
+  filter(fecid == 'C00027466')
+
+droz_actblue_all <- actblue_all %>% 
+  filter(fecid == 'C00795930')
+
+nrcc_actblue_all <- actblue_all %>% 
+  filter(fecid == 'C00075820')
+
+tim_scott_actblue_all <- actblue_all %>% 
+  filter(fecid == 'C00540302')
+
+totals <- actblue_all %>% 
+  group_by(fecid, name) %>% 
+  summarize(contribs = n(), total = sum(amount), min_date = min(date), max_date = max(date), average = mean(amount)) %>% 
+  arrange(desc(contribs))
+
+```
+
+
+```{r}
+trump_donors <- trump_actblue %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+```
+```{r}
+walker_donors <- herschel_actblue %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+
+rnc_donors <- rnc_actblue_all %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+
+nrsc_donors <- nrsc_actblue_all %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+
+droz_donors <- droz_actblue_all %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+
+scott_donors <- tim_scott_actblue_all %>% 
+  group_by(first_name, last_name, address_one, city, state, zip) %>% 
+  summarize(total = sum(amount), donations = n()) %>% 
+  arrange(desc(donations))
+
+```
+
+```{r}
+trump_not_walker <- trump_donors %>% anti_join(walker_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+walker_not_trump <- walker_donors %>% anti_join(trump_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+trump_not_nrsc <- trump_donors %>% anti_join(nrsc_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+trump_not_rnc <- trump_donors %>% anti_join(rnc_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+trump_not_scott <- trump_donors %>% anti_join(scott_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+rnc_not_scott <- rnc_donors %>% anti_join(scott_donors, by=c('first_name', 'last_name', 'address_one', 'city', 'state', 'zip'))
+
+```
+
+

@@ -1,0 +1,13 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+stateleg <- read_tsv("~/code/ddhq/state_leg.tsv")
+```
+
+
+```{r}
+
+```
+

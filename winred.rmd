@@ -1,0 +1,116 @@
+---
+title: "WinRed"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r}
+
+my2021_winred_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1552533.csv.zip")
+my2021_winred_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1552533.csv.zip")
+
+my2023_winred_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1720509.csv.zip")
+my2023_winred_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1720509.csv.zip")
+```
+
+```{r}
+my2021_winred_sb %>% 
+  filter(!is.na(recipient)) %>% 
+  group_by(recipient) %>% 
+  summarize(total = sum(amount), count = n()) %>% 
+  arrange(desc(total))
+```
+
+```{r}
+my2023_winred_sa %>% 
+  filter(str_detect(memo_text, 'Earmark')) %>% 
+  filter(last_name == 'Nguyen', first_name == 'Katherine', state == 'MD') %>% 
+  group_by(memo_text) %>% 
+  summarize(total = sum(amount), median = median(amount), avg = mean(amount), count = n()) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+my2019_actblue_sa %>% 
+  filter(str_detect(memo_text, 'Earmark')) %>% 
+  group_by(state) %>% 
+  summarize(total = sum(amount), median = median(amount), avg = mean(amount), count = n()) %>% 
+  arrange(desc(count))
+```
+
+
+
+```{r}
+
+winred_my2021 <- read_csv("output/1552533/SA11AI.csv", col_types = cols(contribution_date = col_date(format = "%Y-%m-%d")))
+winred_my2021 <- winred_my2021 %>% separate(contribution_purpose_descrip, c('earmark_name', 'cmte_id'), sep=" \\(") %>% mutate(cmte_id = str_remove(cmte_id, fixed(")")), zip5 = str_sub(contributor_zip_code, 1, 5))
+```
+
+```{r}
+trump_winred_my2021 <- winred_my2021 %>% filter(earmark_name == 'Earmarked for TRUMP MAKE AMERICA GREAT AGAIN COMMITTEE' | earmark_name == 'Earmarked for DONALD J. TRUMP FOR PRESIDENT, INC.' | earmark_name == 'Earmarked for SAVE AMERICA' | earmark_name == 'Earmarked for SAVE AMERICA JOINT FUNDRAISING COMMITTEE')
+```
+
+Top individuals by donation
+
+```{r}
+
+trump_winred_my2021 %>% group_by(contributor_first_name, contributor_last_name, zip5) %>% summarize(donations = n(), total = sum(contribution_amount)) %>% arrange(desc(total))
+
+trump_winred_my2021 %>% filter(contributor_first_name == 'William', contributor_last_name == 'Song', zip5 == '90631') %>% group_by(earmark_name) %>% summarize(donations = n(), total = sum(contribution_amount), min_date = min(contribution_date), max_date = max(contribution_date)) %>% arrange(desc(donations))
+```
+
+
+```{r}
+donors_unique_recips <- winred_my2021 %>% group_by(contributor_first_name, contributor_last_name, contributor_state, zip5) %>% summarize(unique = n_distinct(earmark_name)) %>% arrange(desc(unique))
+```
+
+```{r}
+winred_q2_22 <- read_csv("sa1615035.csv", col_types = cols(date = col_date(format = "%Y-%m-%d")))
+winred_q1_22 <- read_csv("sa1586719.csv", col_types = cols(date = col_date(format = "%Y-%m-%d")))
+winred_my_22 <- bind_rows(winred_q1_22, winred_q2_22)
+winred_my_22 <- winred_my_22 %>% 
+  mutate(month = month(date), day = day(date))
+```
+
+```{r}
+winred_my_22 %>% 
+  group_by(month) %>% 
+  summarize(donations = n(), total = sum(amount), average=mean(amount)) %>% 
+  arrange(month)
+```
+```{r}
+winred_my_22 <- winred_my_22 %>% mutate(quarter = if_else(month < 4, 'Q1', 'Q2'))
+```
+
+```{r}
+quarter_totals <- winred_my_22 %>% 
+  group_by(quarter, memo_text) %>% 
+  summarize(total = sum(amount)) %>% 
+  pivot_wider(names_from = quarter, values_from = total) %>% 
+  mutate(diff = Q2-Q1) %>% 
+  arrange(diff)
+
+write_csv(quarter_totals, "winred_quarter_totals.csv")
+```
+```{r}
+q1_unique <- winred_q1_22 %>% filter(!is.na(last_name)) %>% group_by(last_name, first_name, middle_name, city, state, zip) %>% summarize(count = n())
+q2_unique <- winred_q2_22 %>% filter(!is.na(last_name)) %>% group_by(last_name, first_name, middle_name, city, state, zip) %>% summarize(count = n())
+
+```
+```{r}
+lydia_foght <- winred_my_22 %>% filter(last_name == 'Foght', first_name == 'Lydia')
+```
+
+```{r}
+q1_unique %>% filter(count < 10)
+q2_unique %>% filter(count < 10)
+```
+
+

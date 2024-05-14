@@ -1,0 +1,19 @@
+---
+title: "Abortion Tweets"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+pre_dobbs <- read_csv("abortion_pre_dobbs_tweets.csv")
+post_dobbs <- read_csv("abortion_post_dobbs_tweets.csv")
+```
+
+```{r}
+combined <- post_dobbs %>% full_join(pre_dobbs, by=c('id', 'user_name', 'first_name', 'last_name', 'party_id', 'branch', 'state', 'district')) %>% rename(post_dobbs = tweets.x, pre_dobbs = tweets.y) %>% mutate(diff = post_dobbs-pre_dobbs) %>% mutate(diff_pct=(diff/pre_dobbs)*100) %>% arrange(desc(diff_pct))
+```
+

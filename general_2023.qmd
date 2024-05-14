@@ -1,0 +1,9 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+ky_2019 <- read_csv("2019_ky_gov_results.csv")
+```
+
+

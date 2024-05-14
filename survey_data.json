@@ -1,0 +1,127 @@
+[
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you agree ONLY United States citizens should be allowed to vote in our elections?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Are you an American Citizen?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Could you prove your American Citizenship?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Did you vote in the 2022 Midterm Elections?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Please confirm your zip code.",
+        "answers": []
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "How did you cast your vote in the 2022 elections (if applicable)?",
+        "answers": [
+            "In-Person",
+            "By Mail",
+            "Did Not Vote"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "If you voted, which state did you vote in?",
+        "answers": []
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you want free and fair elections?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you think our country was better off under President Trump or Joe Biden?",
+        "answers": [
+            "President Trump",
+            "Joe Biden"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you believe Joe Biden should resign?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you believe voters should be required to show photo identification before voting?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you identify as a Republican?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you support free speech?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Do you believe Big Tech is censoring Republicans?",
+        "answers": [
+            "Yes",
+            "No"
+        ]
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Which issue concerned you the most before the 2020 Presidential Election?",
+        "answers": []
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Which issue concerned you the most before the 2022 Election?",
+        "answers": []
+    },
+    {
+        "url": "https://secure.winred.com/nrsc/cs-voter-verification-questionaire-v5/",
+        "question": "Can we count on you to give $10 to ensure Senate Republicans can fight back against Joe Biden and his extremist Democrats in the Senate?",
+        "answers": [
+            "Yes",
+            "I'll give more than $10"
+        ]
+    }
+]

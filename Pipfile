@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+emailnetwork = "*"
+sqlite-utils = "*"
+datasette = "*"
+html2text = "*"
+bs4 = "*"
+requests = "*"
+urlextract = "*"
+requests-html = "*"
+notebook = "*"
+dirty-cat = "*"
+tldextract = "*"
+groq = "*"
+llm = "*"
+ttok = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

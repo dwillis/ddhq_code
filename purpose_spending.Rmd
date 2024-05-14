@@ -1,0 +1,52 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+purpose_totals <- read_csv("post_general_purpose_totals.csv") %>% mutate(original_purpose = purpose, purpose = str_to_upper(purpose)) %>% filter(!str_detect(purpose, "EARMARK")) %>% filter(!str_detect(purpose, "REFUND")) %>% filter(!str_detect(purpose, "^DRAW"))
+
+purpose_totals <- purpose_totals %>% 
+  mutate(purpose = gsub("\\[MEMO\\]", "", purpose)) %>% 
+  mutate(purpose = gsub("MEMO", "", purpose)) %>%
+  mutate(purpose = gsub("NON-FEDERAL DISBURSEMENT:", "", purpose)) %>%
+  mutate(purpose = gsub("NON-FEDERAL DISB -", "", purpose)) %>%
+  mutate(purpose = gsub("NON-FEDERAL", "", purpose)) %>%
+  mutate(purpose = gsub("NON-FED I.E.:", "", purpose)) %>%
+  mutate(purpose = gsub("NONFEDERAL DISBURSEMENT:", "", purpose)) %>%
+  mutate(purpose = gsub("NONFEDERAL DISB -", "", purpose)) %>%
+  mutate(purpose = gsub("NONFEDERAL", "", purpose)) %>%
+  mutate(purpose = gsub("^REIMBURSEMENT", "", purpose)) %>%
+  mutate(purpose = gsub("^REIMBURSE", "", purpose)) %>%
+  mutate(purpose = gsub("^REIMB", "", purpose)) %>%
+  mutate(purpose = gsub("^IE-", "", purpose)) %>%
+  mutate(purpose = gsub("NONFED I.E.:", "", purpose)) %>%
+  mutate(purpose = gsub("OCTOBER 2022", "", purpose)) %>%
+  mutate(purpose = gsub("NOVEMBER 2022", "", purpose)) %>%
+  mutate(purpose = gsub("^OCTOBER", "", purpose)) %>%
+  mutate(purpose = gsub("^NOVEMBER", "", purpose)) %>%
+  mutate(purpose = gsub("^ACTUAL COST FOR", "", purpose)) %>%
+  mutate(purpose = gsub("IN-KIND", "", purpose)) %>%
+  mutate(purpose = gsub("NONCONTRIBUTION ACCOUNT", "", purpose)) %>%
+  mutate(purpose = gsub("NON-CONTRIBUTION ACCT:", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d\\d/\\d\\d/\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d/\\d\\d/\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d\\d/\\d/\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d/\\d/\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d\\d/\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d\\d/\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^\\d\\d\\d\\d", "", purpose)) %>%
+  mutate(purpose = gsub("^ -", "", purpose)) %>% 
+  mutate(purpose = gsub("^-", "", purpose)) %>%
+  mutate(purpose = gsub("^,", "", purpose)) %>%
+  mutate(purpose = gsub("^:", "", purpose)) %>%
+  mutate(purpose = gsub("^-", "", purpose)) %>%
+  mutate(purpose = str_squish(purpose))
+
+totals <- purpose_totals %>% 
+  group_by(original_purpose, purpose) %>% 
+  summarize(total = sum(amount))
+
+
+write_csv(totals, "purpose_totals.csv")
+```
+

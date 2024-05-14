@@ -1,0 +1,47 @@
+---
+title: "Michigan"
+author: "Derek Willis"
+date: "4/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+michigan <- read_csv("~/code/ddhq/michigan.csv", 
+    col_types = cols(date = col_date(format = "%Y-%m-%d")))
+```
+
+
+```{r}
+michigan_smaller <- michigan %>% 
+  group_by(last_name, first_name, city, state, zip, memo_text) %>%  
+  summarize(total = sum(amount))
+```
+
+```{r}
+stevens_levin <- michigan_smaller %>% 
+  mutate(lawmaker = ifelse(str_detect(memo_text, 'HALEY'), 'Stevens', 'Levin')) %>% 
+  select(-memo_text) %>% 
+  pivot_wider(names_from = lawmaker, values_from = total)
+```
+
+
+```{r}
+stevens_levin %>% filter(Stevens > 0) %>% nrow()
+stevens_levin %>% filter(Levin > 0) %>% nrow()
+stevens_levin %>% filter(Levin > 0, Stevens > 0) %>% nrow()
+stevens_levin %>% filter(Levin == 5800, Stevens == 5800) 
+
+stevens_levin %>% filter(state == 'MI', Stevens > 0) %>% nrow()
+stevens_levin %>% filter(state == 'MI', Levin > 0) %>% nrow()
+stevens_levin %>% filter(state == 'MI', Levin > 0, Stevens > 0) %>% nrow()
+```

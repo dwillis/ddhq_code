@@ -1,0 +1,26 @@
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+kennedy <- read_csv("kennedy_contribs.csv")
+```
+
+```{r}
+kennedy_for_matching <- kennedy %>% 
+  filter(!is.na(last_name)) %>% 
+  mutate(donor_match = str_to_lower(paste0(last_name,', ',first_name))) %>% 
+  mutate(city_match = str_to_lower(city)) %>% 
+  select(donor_match, last_name, first_name, middle_name, street_1, street_2, city_match, state, zip_code) %>% 
+  distinct()
+```
+
+```{r}
+possible_matches <- contribs %>% inner_join(kennedy_for_matching, join_by(most.recent.contributor.name == donor_match, most.recent.contributor.state == state, most.recent.contributor.city == city_match)) %>% distinct()
+```
+
+```{r}
+possible_matches %>% filter(amount_2020 == 0) %>% arrange(desc(amount_2016))
+```
+

@@ -1,0 +1,88 @@
+---
+title: "ies"
+author: "Derek Willis"
+date: "3/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+ies <- read_csv("ies.csv", col_types = cols(date = col_date(format = "%m/%d/%y"), 
+     date_received = col_date(format = "%m/%d/%y"), 
+     dissemination_date = col_date(format = "%m/%d/%y")))
+
+ies <- ies %>% 
+  mutate(committee_name = str_to_title(committee_name))
+
+fec_candidates <- read_csv("fec_candidates.csv")
+
+ies <- ies %>% inner_join(fec_candidates, by=c('fec_candidate_id'='fecid'))
+```
+
+## Senate IEs by Election Type by Cycle
+
+```{r}
+
+ies %>% 
+  filter(cycle == 2022, office_name == 'Senate') %>% 
+  group_by(election_type) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))
+
+ies %>% 
+  filter(cycle == 2020, office_name == 'Senate', dissemination_date < '2020-03-20') %>% 
+  group_by(election_type) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))
+
+ies %>% 
+  filter(cycle == 2018, office_name == 'Senate', dissemination_date < '2018-03-20') %>% 
+  group_by(election_type) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))
+
+```
+
+## Top Senate Primary Races
+
+```{r}
+senate_2022_primary_states <- ies %>% 
+filter(cycle.x == 2022, office_name == 'Senate', election_type == 'P') %>% 
+  group_by(office_state.x) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))  
+
+```
+
+### Top Senate Primary Race Spenders
+
+```{r}
+
+senate_primary_spenders <- ies %>% 
+filter(cycle.x == 2022, office_name == 'Senate', election_type == 'P') %>% 
+  group_by(party) %>% 
+  summarise(total = sum(amount)) %>% 
+  arrange(desc(total))  
+
+#write_csv(senate_primary_spenders, 'senate_primary_spenders.csv')
+
+```
+
+### Top Senate Primary Race Targets
+
+```{r}
+
+senate_primary_targets <- ies %>% 
+filter(cycle.x == 2022, cycle.y == 2022, office_name == 'Senate', election_type == 'P') %>% 
+  group_by(clean_name, party.y, office_state.y, support) %>% 
+  summarise(total = sum(amount)) %>% 
+  pivot_wider(names_from=support, values_from=total)
+
+write_csv(senate_primary_targets, 'senate_primary_targets.csv')
+
+```

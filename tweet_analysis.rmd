@@ -1,0 +1,39 @@
+---
+title: "Tweets"
+output: html_notebook
+---
+
+```{r}
+tweets_by_account <- read_csv("tweets_by_account.csv")
+trump_tweets_by_account <- read_csv("trump_tweets_by_account.csv")
+fec_candidates <- read_csv("fec_candidates.csv")
+```
+
+
+```{r}
+combined_tweets <- tweets_by_account %>% full_join(trump_tweets_by_account, by=c('id', 'user_name', 'first_name', 'last_name', 'state', 'branch', 'party_id', 'status')) %>% rename(all_tweets = tweets.x, trump_tweets = tweets.y) %>% mutate(pct_trump = (trump_tweets/all_tweets)*100)
+```
+
+
+Averages
+
+```{r}
+combined_tweets %>% filter(trump_tweets > 0) %>% group_by(party_id) %>% summarize(avg = mean(all_tweets), avg_trump = mean(trump_tweets))
+```
+
+
+
+Top Republicans
+
+```{r}
+combined_tweets %>% filter(party_id == 2, status == 1, all_tweets >= 100) %>% arrange(desc(pct_trump))
+```
+Dems
+
+```{r}
+combined_tweets %>% filter(party_id == 1, status == 1, all_tweets >= 100) %>% arrange(desc(pct_trump))
+```
+
+```{r}
+combined_tweets %>% filter(status == 4, all_tweets >= 100) %>% arrange(desc(pct_trump))
+```

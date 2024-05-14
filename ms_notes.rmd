@@ -1,0 +1,34 @@
+---
+title: "mississippi"
+author: "Derek Willis"
+date: "2/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+
+```{r}
+ms_2011 <- read_csv("https://raw.githubusercontent.com/openelections/openelections-data-ms/master/2011/20111108__ms__general__precinct.csv")
+
+```
+
+
+```{r}
+bryant_yes <- ms_2011 %>%
+  filter(office == 'Governor' | office == 'Measure No. 26 - Definition of a person') %>% 
+  filter(candidate == 'Phil Bryant' | candidate == 'Yes') %>% 
+  filter(precinct != 'TOTAL')
+```
+
+
+```{r}
+bryant_yes_pivot <- bryant_yes %>% 
+  select(county, precinct, candidate, votes) %>% 
+  pivot_wider(names_from = candidate, values_from = votes)
+
+```

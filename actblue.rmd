@@ -1,0 +1,101 @@
+---
+title: "actblue"
+author: "Derek Willis"
+date: "2022-09-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+my2019_actblue_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1344765.csv.zip")
+my2019_actblue_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1344765.csv.zip")
+
+my2021_actblue_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1533121.csv.zip")
+my2021_actblue_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1533121.csv.zip")
+
+my2023_actblue_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1720554.csv.zip")
+my2023_actblue_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1720554.csv.zip")
+```
+```{r}
+my2019_actblue %>% 
+  filter(!is.na(recipient)) %>% 
+  group_by(recipient) %>% 
+  summarize(total = sum(amount), count = n()) %>% 
+  arrange(desc(total))
+```
+
+```{r}
+my2019_actblue_sb %>% 
+  filter(str_detect(memo_text, 'Earmark of')) %>% 
+  group_by(recipient) %>% 
+  summarize(median = median(amount), avg = mean(amount)) %>% 
+  arrange(a)
+```
+
+
+
+```{r}
+actblue_recips %>% 
+  filter(year == 2022) %>% 
+  arrange(desc(amount))
+```
+
+```{r}
+monthly <- read_csv("actblue_senate_monthly.csv")
+monthly_wider <- monthly %>% pivot_wider(names_from = Month, values_from = Total)
+```
+
+```{r}
+august_donations <- actblue_recips %>% 
+  filter(month == 8) %>% 
+  select(recipient, donations, year) %>% 
+  pivot_wider(names_from=year, values_from=donations) %>% 
+  filter(!is.na(`2020`)) %>%
+  mutate(pct_change = (`2022`-`2020`)/`2020`) %>% 
+  arrange(desc(`2022`))
+```
+
+
+```{r}
+alaska_q3 <- read_csv("sb_1645815_ak.csv")
+
+alaska_q3 %>% filter(recipient == 'MARY PELTOLA FOR ALASKA') %>% group_by(date) %>% summarize(total = sum(amount)) %>% arrange(desc(total))
+```
+
+
+```{r}
+actblue_2022_sub200 <- read_csv("actblue_2022_sub200.csv") %>% filter(memo_text != 'Contribution to ActBlue')
+```
+```{r}
+warnock_oos <- actblue_2022_sub200 %>% filter(memo_text == 'Earmarked for WARNOCK FOR GEORGIA (C00736876)', state != 'GA')
+
+warnock_oos %>% summarize(total = sum(sum))
+```
+
+### February 2024
+
+
+```{r}
+feb2024_actblue_sb <- read_csv("/Volumes/LaCie2/backup/fec_data/sb1765652.csv.zip")
+feb2024_actblue_sa <- read_csv("/Volumes/LaCie2/backup/fec_data/sa1765652.csv.zip")
+```
+
+
+```{r}
+porter_feb24 <- feb2024_actblue_sa |> filter(memo_text == 'Earmarked for KATIE PORTER FOR SENATE (C00831107)')|> group_by(last_name, first_name, city, state, zip) |> summarize(porter_total = sum(amount), porter_count = n())
+
+biden_feb24 <- feb2024_actblue_sa |> filter(str_detect(memo_text, "BIDEN")) |> group_by(last_name, first_name, city, state, zip) |> summarize(biden_total = sum(amount), biden_count = n())
+  
+porter_biden_feb24 <- biden_feb24 |> inner_join(porter_feb24, join_by(last_name, first_name, city, state, zip))
+
+
+porter_biden_feb24 |> filter(biden_total > porter_total)
+```
+

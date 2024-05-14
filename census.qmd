@@ -1,0 +1,83 @@
+```{r}
+library(tidyverse)
+library(cowplot)
+library(scales)
+```
+
+```{r}
+censusest <- read_csv("co-est2023-alldata.csv")
+
+countypop <- censusest |> filter(COUNTY != '000')
+
+countypop <- countypop |> mutate(domestic_change = DOMESTICMIG2020 + DOMESTICMIG2021 + DOMESTICMIG2022 + DOMESTICMIG2023)
+domestic_change <- countypop |> select(STNAME, CTYNAME, domestic_change) |> arrange(domestic_change)
+
+domestic_change <- domestic_change |> mutate(county = str_remove(CTYNAME, " County")) |> mutate(county = paste(county, STNAME, sep=', '))
+
+write_csv(domestic_change, "domestic_change.csv")
+
+top10 <- domestic_change |> top_n(10, wt=domestic_change)
+bottom10 <- domestic_change |> top_n(10, wt=-domestic_change)
+
+```
+
+```{r}
+
+bar1 <- ggplot() + 
+  geom_bar(data=top10, aes(x=reorder(county, domestic_change), weight=domestic_change)) +
+  coord_flip() +
+  labs(title="Counties with Biggest Domestic Migration", subtitle = "Florida, Texas and Arizona saw the largest influx, while large cities had the opposite",  x="", y="Domestic migration", caption = "") + 
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title = element_text(size = 8), 
+    plot.subtitle = element_text(size=10), 
+    panel.grid.minor = element_blank()
+    ) 
+
+bar2 <- ggplot() + 
+  geom_bar(data=bottom10, aes(x=reorder(county, domestic_change), weight=domestic_change)) +
+  coord_flip() +  
+  labs(title = "", subtitle= "", x="", y="",  caption="Source: Census Bureau | By Derek Willis") + 
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title = element_text(size = 8), 
+    plot.subtitle = element_text(size=10), 
+    panel.grid.minor = element_blank()
+    ) 
+
+plot_grid(bar1, bar2, labels = "comma") 
+  
+```
+
+
+```{r}
+counties <- read_delim("counties_join_forderek.txt", delim = '\t')
+```
+
+```{r}
+biden_counties <- counties |> 
+  filter(party == 'DEMOCRAT') 
+
+trump_counties <- counties |> 
+  filter(party == 'REPUBLICAN') 
+
+ggplot(counties, aes(x=pop_pctch2023, color=party)) + geom_histogram(fill="white", position="dodge")+
+  theme(legend.position="top") + geom_vline(aes(xintercept=mean(pop_pctch2023)),
+            color="white", linetype="dashed", size=1) + scale_color_brewer(palette="Dark2") + labs(title = "Most Counties Saw Little Change in Domestic Migration", x="percent change from 2020-2023", y = "number of counties")
+  
+
+ggplot(trump_counties, aes(x=pop_pctch2023)) + geom_histogram(color="black", fill="red") + geom_vline(aes(xintercept=mean(pop_pctch2023)),
+            color="white", linetype="dashed", size=1)
+  
+```
+
+
+
+```{r}
+write_csv(counties, "counties.csv")
+
+write_csv(biden_counties, "biden_counties.csv")
+```
+

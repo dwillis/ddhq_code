@@ -1,0 +1,23 @@
+```{r}
+library(tidyverse)
+library(haven)
+```
+
+```{r}
+eavs_2022 <- read_dta("2022_EAVS_for_Public_Release_V1_MEDSL.dta")
+```
+
+```{r}
+cured_mail <- eavs_2022 %>% 
+  filter(c7a > 0, c8a > 0) %>% 
+  select(jurisdiction_name, state_abbr, c1b, c7a, c8a, c9a)
+```
+
+```{r}
+cured_mail %>% 
+  summarise(total = sum(c7a))
+```
+```{r}
+write_csv(cured_mail, "cured_mail.csv")
+```
+

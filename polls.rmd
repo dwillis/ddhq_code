@@ -1,0 +1,138 @@
+---
+title: "Where are the House polls?"
+author: "Derek Willis"
+date: "2022-09-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+### Public Polls Through Sept. 20 Analysis
+
+This analysis uses [polling data published by FiveThirtyEight](https://github.com/fivethirtyeight/data/tree/master/polls) that was retrieved on Sept. 24, 2022. I downloaded files containing information about public polls for House, Senate and gubernatorial races in the current cycle and previous ones back to 2018. 
+
+
+```{r}
+# load Senate polls and convert dates to actual dates
+senate_polls_2022 <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/senate_polls.csv")
+senate_polls_2022 <- senate_polls_2022 %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+
+senate_polls_historical <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/senate_polls_historical.csv")
+senate_polls_historical <- senate_polls_historical %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+```
+
+```{r}
+# generate counts of general election Senate polls where the end date was prior to Sept. 21 of the election year.
+
+senate22_polls_before_sept20 <- senate_polls_2022 %>% filter(end_date < '2022-09-21', cycle == 2022, election_date == '2022-11-08') %>% select(poll_id) %>% n_distinct()
+senate20_polls_before_sept20 <- senate_polls_historical %>% filter(end_date < '2020-09-21', cycle == 2020, election_date == '2020-11-03') %>% select(poll_id) %>% n_distinct()
+senate18_polls_before_sept20 <- senate_polls_historical %>% filter(end_date < '2018-09-21', cycle == 2018, election_date == '2018-11-06') %>% select(poll_id) %>% n_distinct()
+```
+
+
+```{r}
+# load House polls and convert dates to actual dates
+
+house_polls_2022 <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/house_polls.csv")
+house_polls_2022 <- house_polls_2022 %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+
+house_polls_historical <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/house_polls_historical.csv")
+house_polls_historical <- house_polls_historical %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+```
+
+```{r}
+# generate counts of general election House polls where the end date was prior to Sept. 21 of the election year, excluding any special general elections.
+
+house22_polls_before_sept20 <- house_polls_2022 %>% filter(end_date < '2022-09-21', cycle == 2022, stage == 'general', election_date == '2022-11-08') %>% select(poll_id) %>% n_distinct()
+house20_polls_before_sept20 <- house_polls_historical %>% filter(end_date < '2020-09-21', cycle == 2020, stage == 'general', election_date == '2020-11-03') %>% select(poll_id) %>% n_distinct()
+house18_polls_before_sept20 <- house_polls_historical %>% filter(end_date < '2018-09-21', cycle == 2018, stage == 'general', election_date == '2018-11-06') %>% select(poll_id) %>% n_distinct()
+```
+
+
+```{r}
+# generate House general election polls by state and district for 2022
+
+house_polls_by_race <- house_polls_2022 %>% 
+  filter(end_date < '2022-09-21', cycle == 2022, stage == 'general', election_date == '2022-11-08') %>% 
+  group_by(state, seat_number) %>% 
+  summarise(count = n_distinct(poll_id)) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+# generate House general election polls by state and district for 2018
+
+house_polls_historical %>% 
+  filter(end_date < '2018-09-21', cycle == 2018, stage == 'general', election_date == '2018-11-06') %>% 
+  group_by(state, seat_number) %>% 
+  summarise(count = n_distinct(poll_id)) %>% 
+  filter(count == 1)
+```
+
+
+
+```{r}
+# generate House general election polls by pollster for 2022
+
+house_polls_by_pollster <- house_polls_2022 %>% 
+  filter(end_date < '2022-09-21', cycle == 2022, stage == 'general', election_date == '2022-11-08') %>% 
+  group_by(pollster) %>% 
+  summarise(count = n_distinct(poll_id)) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+# generate House general election polls by pollster for 2018
+
+house_polls_by_pollster18 <- house_polls_historical %>% 
+  filter(end_date < '2018-09-21', cycle == 2018, stage == 'general', election_date == '2018-11-06') %>% 
+  group_by(pollster) %>% 
+  summarise(count = n_distinct(poll_id)) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+# load gubernatorial polls and convert dates to actual dates
+
+gov_polls_2022 <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/governor_polls.csv")
+gov_polls_2022 <- gov_polls_2022 %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+
+gov_polls_historical <- read_csv("https://projects.fivethirtyeight.com/polls-page/data/governor_polls_historical.csv")
+gov_polls_historical <- gov_polls_historical %>% 
+  mutate(start_date = mdy(start_date), end_date = mdy(end_date), election_date = mdy(election_date))
+```
+
+```{r}
+# generate counts of general election gubernatorial polls where the end date was prior to Sept. 21 of the election year.
+
+gov22_polls_before_sept20 <- gov_polls_2022 %>% filter(end_date < '2022-09-21', cycle == 2022, stage == 'general', election_date == '2022-11-08') %>% select(poll_id) %>% n_distinct()
+gov20_polls_before_sept20 <- gov_polls_historical %>% filter(end_date < '2020-09-21', cycle == 2020, stage == 'general', election_date == '2020-11-03') %>% select(poll_id) %>% n_distinct()
+gov18_polls_before_sept20 <- gov_polls_historical %>% filter(end_date < '2018-09-21', cycle == 2018, stage == 'general', election_date == '2018-11-06') %>% select(poll_id) %>% n_distinct()
+```
+
+
+```{r}
+# generate gubernatorial general election polls by state for 2022
+
+gov_polls_2022 %>% 
+  filter(end_date < '2022-09-21', cycle == 2022, stage == 'general', election_date == '2022-11-08') %>% 
+  group_by(state) %>% 
+  summarise(count = n_distinct(poll_id)) %>% 
+  arrange(desc(count))
+```
+

@@ -1,0 +1,19 @@
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+ny2016 <- read_csv("~/code/openelections-data-ny/2016/20161108__ny__general__precinct.csv")
+```
+```{r}
+ny2016_fix <- ny2016 %>% mutate(votes = ifelse(is.na(votes), 0, votes))
+```
+
+
+
+
+```{r}
+ny2016_fix %>% filter(office == 'President') %>% group_by(county, candidate, party) %>% summarize(total = sum(votes)) %>% arrange(county)
+```
+

@@ -1,0 +1,63 @@
+---
+title: "NC Voter File"
+author: "Derek Willis"
+date: "3/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+nc_voters <- read_delim("ncvoter_Statewide.txt", delim='\t')
+
+nc_voters <- nc_voters %>% 
+  mutate(registr_dt = as.datmdy(registr_dt))
+
+```
+
+## Summaries
+
+
+```{r}
+
+nc_voters %>%
+  filter(status_cd == 'A' | status_cd == 'I' | status_cd == 'S') %>% 
+  filter(ethnic_code == 'UN') %>% 
+  group_by(age_at_year_end) %>%
+  summarize(voters = n()) %>% 
+  arrange(desc(voters))
+
+
+```
+
+```{r}
+
+
+
+nc_voters %>%
+  filter(status_cd == 'A' | status_cd == 'I' | status_cd == 'S') %>% 
+  filter(registr_dt > '2020-11-03') %>% 
+  group_by(party_cd) %>%
+  summarize(voters = n()) %>% 
+  arrange(desc(voters))
+
+```
+
+```{r}
+
+
+
+write_csv(nc_voters %>%
+  filter(status_cd == 'A' | status_cd == 'I' | status_cd == 'S') %>% 
+  filter(party_cd == 'REP') %>% 
+  group_by(race_code, ethnic_code) %>%
+  summarize(voters = n()) %>% 
+  arrange(desc(voters)), "rep_by_race_ethnicity.csv")
+
+```

@@ -1,0 +1,337 @@
+```{r}
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(fs)
+```
+
+### Allegany
+
+```{r}
+allegany_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/01_Allegany/01GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+allegany_statewide <- allegany_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Allegany")
+
+write_csv(allegany_statewide, "/Volumes/LaCie2/2022\ General\ Election/allegany_statewide.csv")
+```
+
+### Anne Arundel
+
+```{r}
+anne_arundel_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/02_Anne\ Arundel/02GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+anne_arundel_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/02_Anne\ Arundel/02GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+anne_arundel_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/02_Anne\ Arundel/02GG22_Prov_CVR_SBE\ -\ 3.xlsx", guess_max = 100000) %>% clean_names()
+anne_arundel_cvr_4 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/02_Anne\ Arundel/02GG22_Prov_CVR_SBE\ -\ 4.xlsx", guess_max = 100000) %>% clean_names()
+anne_arundel_cvr_5 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/02_Anne\ Arundel/02GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+anne_arundel_cvr <- bind_rows(anne_arundel_cvr_1, anne_arundel_cvr_2, anne_arundel_cvr_3, anne_arundel_cvr_4, anne_arundel_cvr_5)
+
+anne_arundel_statewide <- anne_arundel_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Anne Arundel")
+
+write_csv(anne_arundel_statewide, "/Volumes/LaCie2/2022\ General\ Election/anne_arundel_statewide.csv")
+
+```
+
+### Baltimore City
+
+```{r}
+baltimore_city_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/03_Baltimore\ City/03GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_city_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/03_Baltimore\ City/03GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_city_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/03_Baltimore\ City/03GG22_Prov_CVR_SBE\ -\ 3.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_city_cvr_4 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/03_Baltimore\ City/03GG22_Prov_CVR_SBE\ -\ 4.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_city_cvr_5 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/03_Baltimore\ City/03GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+baltimore_city_cvr <- bind_rows(baltimore_city_cvr_1, baltimore_city_cvr_2, baltimore_city_cvr_3, baltimore_city_cvr_4, baltimore_city_cvr_5)
+
+baltimore_city_statewide <- baltimore_city_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Baltimore City")
+
+write_csv(baltimore_city_statewide, "/Volumes/LaCie2/2022\ General\ Election/baltimore_city_statewide.csv")
+
+```
+
+### Baltimore County
+
+```{r}
+baltimore_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 3.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_4 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 4.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_5 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 5.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_6 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 6.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_7 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 7.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_8 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE\ -\ 8.xlsx", guess_max = 100000) %>% clean_names()
+baltimore_cvr_9 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/04_Baltimore/04GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+baltimore_cvr <- bind_rows(baltimore_cvr_1, baltimore_cvr_2, baltimore_cvr_3, baltimore_cvr_4, baltimore_cvr_5, baltimore_cvr_6, baltimore_cvr_7, baltimore_cvr_8, baltimore_cvr_9)
+
+baltimore_statewide <- baltimore_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Baltimore")
+
+write_csv(baltimore_statewide, "/Volumes/LaCie2/2022\ General\ Election/baltimore_statewide.csv")
+```
+
+### Calvert
+
+```{r}
+calvert_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/05_Calvert/05GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+calvert_statewide <- calvert_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Calvert")
+
+write_csv(calvert_statewide, "/Volumes/LaCie2/2022\ General\ Election/calvert_statewide.csv")
+```
+
+### Caroline
+
+```{r}
+caroline_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/06_Caroline/06GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+caroline_statewide <- caroline_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Caroline")
+
+write_csv(caroline_statewide, "/Volumes/LaCie2/2022\ General\ Election/caroline_statewide.csv")
+```
+
+### Carroll
+
+```{r}
+carroll_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/07_Carroll/07GG22_Prov_CVR_11-18-2022 - SBE.xlsx") %>% clean_names()
+
+carroll_statewide <- carroll_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Carroll")
+
+write_csv(carroll_statewide, "/Volumes/LaCie2/2022\ General\ Election/carroll_statewide.csv")
+```
+
+### Cecil
+
+```{r}
+cecil_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/08_Cecil/08GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+cecil_statewide <- cecil_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Cecil")
+
+write_csv(cecil_statewide, "/Volumes/LaCie2/2022\ General\ Election/cecil_statewide.csv")
+```
+
+### Charles
+
+```{r}
+charles_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/09_Charles/09GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+charles_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/09_Charles/09GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+charles_cvr <- bind_rows(charles_cvr_1, charles_cvr_2)
+
+charles_statewide <- charles_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Charles")
+
+write_csv(charles_statewide, "/Volumes/LaCie2/2022\ General\ Election/charles_statewide.csv")
+```
+
+### Dorchester
+
+```{r}
+dorchester_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/10_Dorchester/10GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+dorchester_statewide <- dorchester_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Dorchester")
+
+write_csv(dorchester_statewide, "/Volumes/LaCie2/2022\ General\ Election/dorchester_statewide.csv")
+```
+
+### Frederick
+
+```{r}
+frederick_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/11_Frederick/11GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+frederick_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/11_Frederick/11GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+frederick_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/11_Frederick/11GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+frederick_cvr <- bind_rows(frederick_cvr_1, frederick_cvr_2, frederick_cvr_3)
+
+frederick_statewide <- frederick_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Frederick")
+
+write_csv(frederick_statewide, "/Volumes/LaCie2/2022\ General\ Election/frederick_statewide.csv")
+```
+
+### Garrett
+
+```{r}
+garrett_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/12_Garrett/12GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+garrett_statewide <- garrett_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Garrett")
+
+write_csv(garrett_statewide, "/Volumes/LaCie2/2022\ General\ Election/garrett_statewide.csv")
+```
+
+### Harford
+
+```{r}
+harford_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/13_Harford/13GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+harford_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/13_Harford/13GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+harford_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/13_Harford/13GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+harford_cvr <- bind_rows(harford_cvr_1, harford_cvr_2, harford_cvr_3)
+
+harford_statewide <- harford_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Harford")
+
+write_csv(harford_statewide, "/Volumes/LaCie2/2022\ General\ Election/harford_statewide.csv")
+```
+
+### Howard
+
+```{r}
+howard_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/14_Howard/14GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+howard_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/14_Howard/14GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+howard_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/14_Howard/14GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+howard_cvr <- bind_rows(howard_cvr_1, howard_cvr_2, howard_cvr_3)
+
+howard_statewide <- howard_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Howard")
+
+write_csv(howard_statewide, "/Volumes/LaCie2/2022\ General\ Election/howard_statewide.csv")
+```
+
+### Kent
+
+```{r}
+kent_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/15_Kent/15GG22_MIB2_CVR_11-18-2022.xlsx") %>% clean_names()
+
+kent_statewide <- kent_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Kent")
+
+write_csv(kent_statewide, "/Volumes/LaCie2/2022\ General\ Election/kent_statewide.csv")
+```
+
+### Montgomery
+
+```{r}
+pg_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 3.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_4 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 4.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_5 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 5.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_6 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 6.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_7 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 7.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_8 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 8.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_9 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 9.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_10 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE\ -\ 10.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_11 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/16_Montgomery/16GG22_Prov_CVR_SBE.xlsx", guess_max = 100000) %>% clean_names()
+
+pg_cvr <- bind_rows(pg_cvr_1, pg_cvr_2, pg_cvr_3, pg_cvr_4, pg_cvr_5, pg_cvr_6, pg_cvr_7, pg_cvr_8, pg_cvr_9, pg_cvr_10, pg_cvr_11)
+
+pg_statewide <- pg_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Montgomery")
+
+write_csv(pg_statewide, "/Volumes/LaCie2/2022\ General\ Election/pg_statewide.csv")
+```
+
+### Prince George's
+
+```{r}
+pg_cvr_1 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 1.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_2 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 2.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_3 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 3.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_4 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 4.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_5 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 5.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_6 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 6.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_7 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 7.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_8 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 8.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_9 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe\ -\ 9.xlsx", guess_max = 100000) %>% clean_names()
+pg_cvr_10 <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/17_Prince\ George\'s/17gg22_prov_cvr_sbe.xlsx", guess_max = 100000) %>% clean_names()
+
+pg_cvr <- bind_rows(pg_cvr_1, pg_cvr_2, pg_cvr_3, pg_cvr_4, pg_cvr_5, pg_cvr_6, pg_cvr_7, pg_cvr_8, pg_cvr_9, pg_cvr_10)
+
+pg_statewide <- pg_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Prince George's")
+
+write_csv(pg_statewide, "/Volumes/LaCie2/2022\ General\ Election/pg_statewide.csv")
+```
+
+### Queen Anne's
+
+```{r}
+qa_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/18_Queen\ Anne\'s/18GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+qa_statewide <- qa_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Queen Anne's")
+
+write_csv(qa_statewide, "/Volumes/LaCie2/2022\ General\ Election/qa_statewide.csv")
+```
+### Saint Mary's
+
+```{r}
+sm_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/19_Saint\ Mary\'s/19GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+sm_statewide <- sm_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Saint Mary's")
+
+write_csv(sm_statewide, "/Volumes/LaCie2/2022\ General\ Election/sm_statewide.csv")
+```
+### Somerset
+
+```{r}
+somerset_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/20_Somerset/20GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+somerset_statewide <- somerset_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Somerset")
+
+write_csv(somerset_statewide, "/Volumes/LaCie2/2022\ General\ Election/somerset_statewide.csv")
+```
+
+### Talbot
+
+```{r}
+talbot_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/21_Talbot/21GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+talbot_statewide <- talbot_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Talbot")
+
+write_csv(talbot_statewide, "/Volumes/LaCie2/2022\ General\ Election/talbot_statewide.csv")
+```
+### Washington
+
+```{r}
+washington_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/22_Washington/22GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+washington_statewide <- washington_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Washington")
+
+write_csv(washington_statewide, "/Volumes/LaCie2/2022\ General\ Election/washington_statewide.csv")
+```
+### Wicomico
+
+```{r}
+wicomico_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/23_Wicomico/23GG22_PROV_CVR_SBE.xlsx") %>% clean_names()
+
+wicomico_statewide <- wicomico_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Wicomico")
+
+write_csv(wicomico_statewide, "/Volumes/LaCie2/2022\ General\ Election/wicomico_statewide.csv")
+```
+
+### Worcester
+
+```{r}
+worcester_cvr <- read_xlsx("/Volumes/LaCie2/2022\ General\ Election/24_Worcester/24GG22_Prov_CVR_SBE.xlsx") %>% clean_names()
+
+worcester_statewide <- worcester_cvr %>% filter(!is.na(governor_lt_governor_500001343)) %>% select(cast_vote_record, precinct, ballot_style, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% mutate(county = "Worcester")
+
+write_csv(worcester_statewide, "/Volumes/LaCie2/2022\ General\ Election/worcester_statewide.csv")
+```
+
+## Combine statewide files
+
+```{r}
+csv_files <- dir_ls("/Volumes/LaCie2/2022\ General\ Election", regexp = "\\.csv$")
+
+read_csv_with_filename <- function(file) {
+  print(file)
+  read_csv(file)
+}
+
+combined_cvr <- map_dfr(csv_files, read_csv_with_filename)
+
+```
+
+### Ticket splitting
+
+```{r}
+
+county_totals <- combined_cvr %>% 
+  group_by(county) %>% 
+  dplyr::summarize(votes = n())
+
+tickets_by_county <- combined_cvr %>% 
+  group_by(county, governor_lt_governor_500001343, comptroller_500001345, attorney_general_500001346, u_s_senator_500001386) %>% 
+  dplyr::summarize(votes = n()) %>% 
+  arrange(county, desc(votes))
+
+tickets_by_county %>% 
+  filter(governor_lt_governor_500001343 == 'undervote', comptroller_500001345 == 'undervote', attorney_general_500001346 == 'undervote', u_s_senator_500001386 == 'undervote') %>% 
+  arrange(desc(votes))
+```
+

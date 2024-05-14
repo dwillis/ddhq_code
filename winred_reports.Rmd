@@ -1,0 +1,32 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+winred_reports <- read_csv("winred_by_report.csv")
+```
+```{r}
+q1_winred <- winred_reports %>% select(-cycle) %>% filter(report_title == 'APR QUARTERLY') %>% pivot_wider(names_from = end_date, values_from = sum) %>% mutate(pct_change = (`2023-03-31`-`2021-03-31`)/`2021-03-31` *100) %>% arrange(desc(pct_change))
+
+write_csv(q1_winred, "q1_winred.csv")
+```
+
+### ActBlue
+
+```{r}
+actblue_reports <- read_csv("actblue_by_report.csv")
+```
+```{r}
+q1_actblue <- actblue_reports %>% select(-cycle) %>% filter(report_title == 'APR QUARTERLY') %>% pivot_wider(names_from = end_date, values_from = sum) %>% mutate(pct_change = (`2023-03-31`-`2021-03-31`)/`2021-03-31` *100) %>% arrange(desc(pct_change))
+```
+
+
+## Totals
+
+ActBlue
+Q1 2021: 
+Q1 2023: 4,353,040.27
+
+WinRed
+Q1 2021: 4,159,224.85
+Q1 2023: 1,735,473.04

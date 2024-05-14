@@ -1,0 +1,286 @@
+```{r}
+library(tidyverse)
+library(qdapRegex)
+library(tidytext)
+library(janitor)
+library(lubridate)
+library(purrr)
+```
+
+```{r}
+
+previous_emails <- read_csv("emails.csv") |> filter(!is.na(party)) |> select(name, subject, party) |> distinct()
+
+emails <- read_csv("~/code/ddhq/dpwillis67_emails_with_body_new.csv")
+
+party_adds <- read_csv("~/code/ddhq/needs_party.csv") %>% filter(!is.na(party))
+
+emails <- emails %>% left_join(previous_emails, join_by(name, subject))
+
+emails <- emails %>% mutate(party.x = if_else(!is.na(party.y), party.y, party.x))
+
+emails <- emails %>% rename(party = party.x) %>% select(-party.y)
+
+#emails_with_parties <- read_csv("~/code/ddhq/emails_with_parties.csv")
+
+emails_no_party <- emails %>% filter(is.na(party)) %>% select(-party)
+
+emails_no_party |> filter(year == 2024) |>  group_by(domain) |> summarize(count = n()) |> arrange(desc(count))
+
+recent_needs_party <- emails_no_party |> filter(year > 2023, disclaimer == TRUE) |>  distinct(name, subject)
+
+write_csv(recent_needs_party, "~/code/ddhq/recent_needs_party2.csv")
+
+recent_needs_party_updated <- read_csv("~/code/ddhq/recent_needs_party2.csv") |> filter(!is.na(party))
+
+emails_party <- emails %>% filter(!is.na(party))
+
+emails_no_party <- emails_no_party %>% left_join(recent_needs_party_updated, join_by(name, subject))
+
+emails_combined <- bind_rows(emails_party, emails_no_party)
+
+emails_since_2020 <- emails_combined %>% filter(year > 2019, disclaimer == TRUE)
+
+#emails_since_2020 <- emails_since_2020 %>% select(-party.x, -party.y)
+#emails_cleaned <- emails_since_2020 %>% mutate(body_clean = rm_url(body))
+#emails_cleaned <- emails_cleaned %>% mutate(body_clean = rm_non_words(body_clean))
+#emails_cleaned <- emails_cleaned %>% mutate(body_clean = rm_email(body_clean))
+
+write_csv(emails, "~/code/ddhq/emails.csv")
+
+write_csv(emails_since_2020, "~/code/ddhq/emails_since_2020.csv")
+
+```
+
+
+```{r}
+emails_since_2020 |> 
+  filter(str_detect(body, "Kristi Noem"), is.na(party))
+```
+
+
+
+
+
+```{r}
+
+emails_with_parties <- read_csv("~/code/emails_with_parties.csv")
+
+emails_no_party <- emails %>% filter(is.na(party)) %>% select(-party)
+
+emails_party <- emails %>% filter(!is.na(party))
+
+emails_no_party <- emails_no_party %>% left_join(emails_with_parties, join_by(name, subject))
+
+emails <- bind_rows(emails_party, emails_no_party)
+
+emails_with_parties <- emails |> filter(!is.na(party)) |> select(name, subject, party) |> distinct()
+
+write_csv(emails_with_parties, "~/code/emails_with_parties.csv")
+
+```
+  
+```{r}
+
+committees <- read_csv("cmtes.csv")
+
+email_collection <- emails_since_2020 |> filter(disclaimer == TRUE) |> mutate(body = str_to_upper(body)) |> select(name, subject, body, date)
+
+# Create a regular expression pattern using the committee names
+pattern <- paste0("(?i)PAID\\s+FOR\\s+BY\\s+(", paste(committees$name, collapse = "|"), ")(?!\\w-)")
+
+extract_disclaimer_and_id <- function(name, subject, body, datetime) {
+  disclaimer_matches <- str_match_all(body, pattern)
+  results <- list()
+  if (length(disclaimer_matches) > 0) {
+    d_matches <- disclaimer_matches[[1]]
+    for (match in d_matches) {
+      disclaimer_text <- match[1]
+      committee_name <- match[2]
+      result <- data.frame(Name = name, Subject = subject, Body = body, DateTime = datetime,
+                            Disclaimer = disclaimer_text, CommitteeName = committee_name)
+      results <- append(results, list(result))
+    }
+  } else {
+    # Handle cases where no disclaimers match any committee
+    result <- data.frame(Name = name, Subject = subject, Body = body, DateTime = datetime,
+                          Disclaimer = NA, CommitteeName = NA)
+    results <- append(results, list(result))
+  }
+  return(results)
+}
+
+# Use pmap_dfr to apply the extraction function to each row of the email collection
+results <- pmap_dfr(list(email_collection$name, email_collection$subject, email_collection$body, email_collection$date), extract_disclaimer_and_id)
+
+
+emails_with_cmtes <- results |> filter(!str_detect(Disclaimer, "PAID FOR")) |> select(-CommitteeName) |> rename(committee_name = Disclaimer)
+
+
+emails_with_cmtes_and_ids <- emails_with_cmtes |> inner_join(committees, join_by(committee_name == name))
+
+
+
+```
+
+
+```{r}
+domains_with_party <- emails_cleaned %>% filter(year > 2019) %>% group_by(domain, party) %>% summarize(count = n()) %>% arrange(desc(count))
+write_csv(domains_with_party, "domains_with_party.csv")
+
+domains_with_party <- read_csv("domains_with_party.csv") %>% rename(new_party = party) %>% filter(!is.na(new_party)) %>% select(-count) %>% distinct(domain, new_party)
+
+domains_with_party %>% group_by(domain) %>% summarize(count = n()) %>% filter(count > 1)
+
+emails_cleaned %>% filter(is.na(party)) %>% nrow()
+
+emails_cleaned_party <- emails_cleaned  %>% left_join(domains_with_party, by="domain", relationship='many-to-one') %>% mutate(party = ifelse(!is.na(new_party), new_party, party)) %>% select(-new_party) %>% distinct()
+
+```
+
+
+
+
+```{r}
+emails_cleaned_search <- emails_cleaned %>% mutate(body_clean = str_to_lower(body_clean))
+
+emails_cleaned_search %>% 
+  filter(str_detect(body_clean, "boebert"), disclaimer == TRUE) %>% 
+  group_by(year, month, party) %>% 
+  dplyr::summarise(count = n()) %>% 
+  pivot_wider(names_from = party, values_from = count) %>% 
+  arrange(desc(year), desc(month))
+
+emails %>% 
+  filter(name == 'Donald Trump Jr.', disclaimer == TRUE) %>% 
+  group_by(year, month, party) %>% 
+  dplyr::summarise(count = n()) %>% 
+  pivot_wider(names_from = party, values_from = count) %>% 
+  arrange(desc(year), desc(month))
+
+emails_cleaned_search %>% 
+  filter(is.na(party), name == 'Donald Trump Jr.', disclaimer == TRUE)
+
+```
+
+```{r}
+emails_cleaned_search %>% 
+  filter(year == 2023, month == 9, disclaimer == TRUE) %>% 
+  group_by(subject) %>% 
+  dplyr::summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+email_domains <- emails %>% group_by(domain, party) %>% summarize(count = n()) %>% arrange(domain)
+
+write_csv(email_domains, "email_domains.csv")
+```
+
+
+
+
+```{r}
+unique_words <- emails_cleaned %>% filter(year == 2023, month == 7, disclaimer == TRUE) %>%  select(body_clean) %>%
+  unnest_tokens(word, body_clean)
+
+data("stop_words")
+
+stop_words <- stop_words %>%
+  add_row(word = 'unsubscribe') %>% 
+  add_row(word = 'click') %>% 
+  add_row(word = 'support') %>% 
+  add_row(word = 'email') %>% 
+  add_row(word = 'donate') %>% 
+  add_row(word = 'contribute') %>% 
+  add_row(word = 'peter') %>% 
+  add_row(word = 'gmail') %>% 
+  add_row(word = 'id')
+
+unique_words %>%
+  anti_join(stop_words) %>%
+  group_by(word) %>%
+  tally(sort=TRUE) %>%
+  mutate(percent = (n/sum(n))*100) %>%
+  top_n(25)
+
+```
+
+
+```{r}
+emails %>% filter(is.na(party), disclaimer == TRUE, year >= 2020) %>% group_by(domain) %>% summarise(count = n()) %>% arrange(desc(count))
+```
+
+
+
+
+```{r}
+email_urls <- read_csv("~/code/ddhq/email_urls.csv") %>% distinct()
+
+email_urls <- email_urls %>% separate(url, c('url', 'params'), sep="\\?")
+
+unique_urls <- email_urls %>% distinct(domain, sender, date, url)
+```
+
+```{r}
+winred_urls <- unique_urls %>% filter(str_detect(url, "winred.com")) %>% distinct()
+actblue_urls <- unique_urls %>% filter(str_detect(url, "actblue.com")) %>% distinct()
+```
+
+```{r}
+write_csv(winred_urls %>% filter(date >= '2023-01-01') |>  distinct(url), "winred_urls.csv")
+write_csv(actblue_urls %>% distinct(date, url), "actblue_urls.csv")
+```
+
+```{r}
+winred_splits <- read_csv("winred_splits_2023.csv")
+```
+
+
+```{r}
+winred_splits %>% filter(str_detect(url, "save-america"))
+
+winred_splits %>% filter(candidates > 1) %>% 
+  group_by(candidate_1_percent) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(candidate_1_percent))
+```
+```{r}
+the_99_percenters <- winred_splits %>% filter(candidates > 1, candidate_1_percent == 0.99) %>% 
+  group_by(candidate_1_name) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+
+#write_csv(the_99_percenters, "the_99_percenters.csv")
+```
+
+```{r}
+winred_splits %>% filter(candidates > 1, candidate_1_percent == 0.99) %>% group_by(candidate_1_name, candidate_2_name) %>% summarise(count = n()) %>% arrange(desc(count))
+
+
+winred_splits %>% filter(candidate_1_name == 'RNC', !is.na(candidate_2_name))
+```
+```{r}
+actblue_urls <- read_csv("actblue_urls_recent.csv") %>% distinct()
+write_csv(actblue_urls %>% distinct(url), "actblue_urls_recent.csv")
+```
+
+
+
+```{r}
+actblue_splits <- read_csv("actblue_splits.csv")
+```
+
+```{r}
+actblue_splits %>% 
+  group_by(candidate_2_name) %>% 
+  summarize(count = n()) %>% 
+  arrange(desc(count))
+```
+
+
+```{r}
+emails_since_2020 |> filter(str_detect(name, "Johnson")) |> arrange(desc(date))
+```
+
