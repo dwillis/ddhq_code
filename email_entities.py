@@ -3,12 +3,12 @@ import time
 from sqlite_utils import *
 from groq import Groq
 
-client = Groq(api_key='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')
+client = Groq(api_key='')
 db = Database('emails.db')
 
 entities = []
 
-for email in db['emails'].rows_where("year = 2024 and month = 3"):
+for email in db['emails'].rows_where("year = 2024 and month = 5"):
     time.sleep(1)
     print(email['subject'])
 
@@ -39,5 +39,5 @@ for email in db['emails'].rows_where("year = 2024 and month = 3"):
     except:
         continue
 
-with open("march_2024.json", 'w') as file:
+with open("may_2024.json", 'w') as file:
     json.dump(entities, file, indent=4)
