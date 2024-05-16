@@ -1,0 +1,58 @@
+```{r}
+library(tidyverse)
+```
+
+Read in 
+
+
+```{r}
+all_votes <- read_csv("all_votes.csv.zip")
+```
+
+Create totals by county for different vote choices.
+
+```{r}
+# All ballots where a voter made a choice in the governor's race
+all_gov_votes <- all_votes |> 
+  filter(!is.na(gov)) |> 
+  group_by(county) |> 
+  summarise(all_gov = n())
+
+# All ballots where a voter chose the Democratic candidate for the four statewide offices and House race
+dem_ticket <- all_votes |> 
+  filter(gov == 'Moore-Miller (10005005.0009160)', comptroller == 'Brooke Elizabeth Lierman (10064064.0004220)', ag == 'Anthony G. Brown (10054054.0000860)', senate == 'Chris Van Hollen (10043043.0001300)', congress == 'David J. Trone (10213213.0005020)') |> 
+  group_by(county) |> 
+  summarise(dem_straight_ticket = n())
+
+# All ballots where a voter chose the Republican candidate for the four statewide offices and House race
+gop_ticket <- all_votes |> 
+  filter(gov == 'Cox-Schifanelli (10005005.0002760)', comptroller == 'Barry Glassman (10064064.0000970)', ag == 'Michael Anthony Peroutka (10054054.0004580)', senate == 'Chris Chaffee (10043043.0003520)', congress == 'Neil C. Parrott (10213213.0002960)') |> 
+  group_by(county) |> 
+  summarise(gop_straight_ticket = n())
+
+# All ballots where a voter chose the Democratic candidate for governor and the GOP candidates for the other statewide offices and House race
+gop_moore <- all_votes |> 
+  filter(gov == 'Moore-Miller (10005005.0009160)', comptroller == 'Barry Glassman (10064064.0000970)', ag == 'Michael Anthony Peroutka (10054054.0004580)', senate == 'Chris Chaffee (10043043.0003520)', congress == 'Neil C. Parrott (10213213.0002960)') |> 
+  group_by(county) |> 
+  summarise(gop_moore = n())
+
+# All ballots where a voter chose the Democratic candidate for governor and the GOP candidate for comptroller
+mg <- all_votes |> 
+  filter(gov == 'Moore-Miller (10005005.0009160)', comptroller == 'Barry Glassman (10064064.0000970)') |> 
+  group_by(county) |> 
+  summarise(moore_glassman = n())
+
+# Joining those together
+totals <- all_gov_votes |>  inner_join(dem_ticket) |> inner_join(gop_ticket) |> inner_join(gop_moore) |> inner_join(mg)
+```
+
+Next, you can calculate percentages for the categories in the `totals` dataframe using mutate() and the all_gov column.
+
+```{r}
+pct_of_totals <- totals %>%
+  mutate(pct_gop_moore = (gop_moore/all_gov) *100) %>%
+  mutate(pct_gop_ticket = (gop_straight_ticket/all_gov) *100) %>%
+  mutate(pct_dem_ticket = (dem_straight_ticket/all_gov) *100) %>%
+  mutate(pct_mg = (moore_glassman/all_gov) *100)
+```
+
