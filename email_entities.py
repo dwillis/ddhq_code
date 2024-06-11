@@ -8,7 +8,7 @@ db = Database('emails.db')
 
 entities = []
 
-for email in db['emails'].rows_where("year = 2024 and month = 5"):
+for email in db['emails'].rows_where("year = 2023 and month = 11"):
     time.sleep(1)
     print(email['subject'])
 
@@ -39,5 +39,5 @@ for email in db['emails'].rows_where("year = 2024 and month = 5"):
     except:
         continue
 
-with open("email_entities/may_2024.json", 'w') as file:
+with open("email_entities/november_2023.json", 'w') as file:
     json.dump(entities, file, indent=4)
