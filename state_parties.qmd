@@ -1,0 +1,53 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+state_parties <- read_csv("state_parties.csv")
+```
+
+
+Load the state party purpose totals, starting with Dems, and isolate payroll and salary stuff. Looks like we need to deal with memo entries?
+
+```{r}
+dem_purpose_totals <- read_csv("dem_state_parties.csv") |> mutate(purpose=str_to_title(purpose))
+
+dem_salary <- dem_purpose_totals |> filter(str_detect(purpose, "Payroll") | str_detect(purpose, "Salar") | str_detect(purpose, "Wage"))
+
+dem_salary_not_admin <- dem_salary |> filter(!str_detect(purpose, "ervice") & !str_detect(purpose, "Admin") & !str_detect(purpose, "Tax") & !str_detect(purpose, "Fee") & !str_detect(purpose, "Software") & !str_detect(purpose, "Levy") & !str_detect(purpose, "rocess") & !str_detect(purpose, "fee") & !str_detect(purpose, "See Memo") & !str_detect(purpose, "see memo"))
+
+dem_payrolls <- dem_salary_not_admin |> group_by(fecid) |> summarize(total = sum(total)) |> arrange(desc(total))
+
+dem_payrolls_with_state <- dem_payrolls |> inner_join(state_parties) |> mutate(party='D')
+
+```
+
+GOP committees
+
+```{r}
+gop_purpose_totals <- read_csv("gop_state_parties.csv") |> mutate(purpose=str_to_title(purpose))
+
+gop_salary <- gop_purpose_totals |> filter(str_detect(purpose, "Payroll") | str_detect(purpose, "Salar") | str_detect(purpose, "salar") | str_detect(purpose, "Wage"))
+
+gop_salary_not_admin <- gop_salary |> filter(!str_detect(purpose, "ervice") & !str_detect(purpose, "Admin") & !str_detect(purpose, "Tax") & !str_detect(purpose, "tax") & !str_detect(purpose, "Fee") & !str_detect(purpose, "Software") & !str_detect(purpose, "Levy") & !str_detect(purpose, "rocess") & !str_detect(purpose, "fee") & !str_detect(purpose, "See Memo") & !str_detect(purpose, "see memo") & !str_detect(purpose, "see-memo") & !str_detect(purpose, "Intuit"))
+
+gop_payrolls <- gop_salary_not_admin |> group_by(fecid) |> summarize(total = sum(total)) |> arrange(desc(total))
+
+gop_payrolls_with_state <- gop_payrolls |> inner_join(state_parties) |> mutate(party='R')
+
+```
+
+Put the two parties together
+
+```{r}
+all_payrolls <- bind_rows(dem_payrolls_with_state, gop_payrolls_with_state)
+
+all_payrolls_wider <- all_payrolls |> select(state, total, party) |> pivot_wider(names_from=party, values_from = total)
+
+all_payrolls_wider <- all_payrolls_wider |> mutate(R = case_when(
+  is.na(R) ~ 0,
+  .default = R
+)) |> 
+  mutate(d_to_r = D/R)
+```
+
