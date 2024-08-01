@@ -9,7 +9,7 @@ library(purrr)
 
 ```{r}
 
-previous_emails <- read_csv("emails.csv") |> filter(!is.na(party)) |> select(name, subject, party) |> distinct()
+previous_emails <- read_csv("~/code/ddhq/emails.csv") |> filter(!is.na(party)) |> select(name, subject, party) |> distinct()
 
 emails <- read_csv("~/code/ddhq/dpwillis67_emails_with_body_new.csv")
 
@@ -29,26 +29,26 @@ emails_no_party |> filter(year == 2024) |>  group_by(domain) |> summarize(count 
 
 recent_needs_party <- emails_no_party |> filter(year > 2023, disclaimer == TRUE) |>  distinct(name, subject)
 
-write_csv(recent_needs_party, "~/code/ddhq/recent_needs_party2.csv")
+write_csv(recent_needs_party, "~/code/ddhq_code/recent_needs_party2.csv")
 
-recent_needs_party_updated <- read_csv("~/code/ddhq/recent_needs_party2.csv") |> filter(!is.na(party))
+recent_needs_party_updated <- read_csv("~/code/ddhq_code/recent_needs_party2.csv") |> filter(!is.na(party))
 
 emails_party <- emails %>% filter(!is.na(party))
 
-emails_no_party <- emails_no_party %>% left_join(recent_needs_party_updated, join_by(name))
+emails_no_party <- emails_no_party %>% left_join(recent_needs_party_updated, join_by(name, subject))
 
 emails_combined <- bind_rows(emails_party, emails_no_party)
 
 emails_combined <- emails_combined %>% select(-subject.x, -subject.y)
 
-emails_since_2020 <- emails_combined %>% filter(year > 2019, disclaimer == TRUE)
+emails_since_2020 <- emails %>% filter(year > 2019, disclaimer == TRUE)
 
 emails_since_2020 <- emails_since_2020 %>% select(-subject.x, -subject.y)
 #emails_cleaned <- emails_since_2020 %>% mutate(body_clean = rm_url(body))
 #emails_cleaned <- emails_cleaned %>% mutate(body_clean = rm_non_words(body_clean))
 #emails_cleaned <- emails_cleaned %>% mutate(body_clean = rm_email(body_clean))
 
-write_csv(emails_combined, "~/code/ddhq/emails.csv")
+write_csv(emails, "~/code/ddhq/emails.csv")
 
 write_csv(emails_since_2020, "~/code/ddhq/emails_since_2020.csv")
 
